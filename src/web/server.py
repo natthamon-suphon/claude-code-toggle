@@ -9,8 +9,8 @@ import secrets
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from cct.config import load_config
 from cct.errors import CctError
-from cct.services.config import load_config
 from cct.services.sessions import recent_sessions
 from cct.services.usage import usage_rows
 

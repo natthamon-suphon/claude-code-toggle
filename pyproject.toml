@@ -51,7 +51,7 @@ version = { attr = "cct.__version__" }
 # Add every new subpackage to `packages`.
 [tool.setuptools]
 package-dir = { "cct" = "src" }
-packages = ["cct", "cct.commands", "cct.services", "cct.utils", "cct.web"]
+packages = ["cct", "cct.commands", "cct.schema", "cct.services", "cct.utils", "cct.web"]
 
 [tool.setuptools.package-data]
 "cct.web" = ["static/*.html"]

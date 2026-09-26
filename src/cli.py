@@ -49,7 +49,7 @@ def main(argv=None) -> int:
 
     # Imported here so `cct statusline` and `cct --help` stay fast.
     from cct.commands import accounts, run, status, statusline, web
-    from cct.services.config import load_config
+    from cct.config import load_config
 
     try:
         cfg = load_config()

@@ -3,9 +3,9 @@ import subprocess
 
 import pytest
 
+from cct.config import load_config
 from cct.errors import CctError
 from cct.services import profiles
-from cct.services.config import load_config
 from cct.services.profiles import (
     SHARED_ITEMS,
     create_profile_dir,

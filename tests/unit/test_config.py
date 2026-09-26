@@ -3,8 +3,7 @@ import json
 import pytest
 
 from cct import paths
-from cct.errors import CctError
-from cct.services.config import (
+from cct.config import (
     account_names,
     config_home,
     get_account,
@@ -12,6 +11,7 @@ from cct.services.config import (
     next_account,
     save_config,
 )
+from cct.errors import CctError
 from cct.utils.fs import read_json
 
 
@@ -53,6 +53,10 @@ def test_save_then_load_round_trip(three_accounts):
         ('{"accounts": [{"name": "has space"}]}', "Bad account entry"),
         ('{"accounts": [{"name": ""}]}', "Bad account entry"),
         (json.dumps({"accounts": [{"name": "x" * 33}]}), "Bad account entry"),
+        ('{"accounts": [{"name": 123}]}', "Bad account entry"),
+        ('{"accounts": [{"name": "acc\\n"}]}', "Bad account entry"),
+        ('{"accounts": [{"name": "acc2", "dir": 5}]}', "Bad account entry"),
+        ('{"accounts": [{"name": "main"}], "prev_statusline": 5}', "Bad prev_statusline"),
     ],
 )
 def test_broken_config_is_a_user_error(text, message):

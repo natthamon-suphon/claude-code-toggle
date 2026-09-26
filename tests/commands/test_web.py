@@ -89,6 +89,16 @@ def test_status_api(dashboard, work):
     assert data["sessions"] == [{"folder": str(work), "account": "main", "updated_at": now, "session": "abcdef12"}]
 
 
+def test_status_api_skips_damaged_session_files(dashboard, work):
+    from cct.utils.fs import write_json
+
+    write_json(paths.session_dir() / "damaged.json", {"folder": "/x", "session_id": 12345, "updated_at": 1})
+    save_session(str(work), "good-session", "main", time.time())
+    resp, body = get(dashboard, "/api/status")
+    assert resp.status == 200
+    assert [s["session"] for s in json.loads(body)["sessions"]] == ["good-ses"]
+
+
 def test_query_string_is_ignored(dashboard):
     assert get(dashboard, "/api/status?t=123")[0].status == 200
 

@@ -21,8 +21,6 @@ Planned work, in priority order. Nothing here may break the hard rules in [CLAUD
   Consider `SO_EXCLUSIVEADDRUSE`. [inferred, not tested]
 - An ISO `resets_at` without a time zone is read as local time. Claude Code has not been seen sending one.
   [inferred]
-- The dashboard API assumes `session_id` in a session file is text; a hand-edited file with a number there breaks
-  `/api/status`.
 
 ## Won't do
 

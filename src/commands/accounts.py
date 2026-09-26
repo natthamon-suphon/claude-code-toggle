@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from cct.config import config_home, get_account
 from cct.errors import CctError
-from cct.services.config import config_home, get_account
+from cct.schema.config import Config
 from cct.services.profiles import create_profile_dir, link_shared, register_profile, unshared_items
 
 
-def cmd_add(cfg: dict, name: str, folder: str | None) -> int:
+def cmd_add(cfg: Config, name: str, folder: str | None) -> int:
     target = create_profile_dir(cfg, name, folder)
     print(f"Profile folder: {target}")
     for item, result in link_shared(target):
@@ -17,7 +18,7 @@ def cmd_add(cfg: dict, name: str, folder: str | None) -> int:
     return 0
 
 
-def cmd_link(cfg: dict, name: str) -> int:
+def cmd_link(cfg: Config, name: str) -> int:
     acc = get_account(cfg, name)
     if not acc.get("dir"):
         raise CctError("The default account uses ~/.claude itself; nothing to link.")
@@ -26,7 +27,7 @@ def cmd_link(cfg: dict, name: str) -> int:
     return 0
 
 
-def cmd_list(cfg: dict) -> int:
+def cmd_list(cfg: Config) -> int:
     for acc in cfg["accounts"]:
         home = config_home(acc)
         if not acc.get("dir"):

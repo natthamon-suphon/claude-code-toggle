@@ -9,8 +9,9 @@ from collections.abc import Iterator
 from pathlib import Path
 
 from cct import paths
+from cct.config import account_names, config_home, save_config
 from cct.errors import CctError
-from cct.services.config import NAME_RE, account_names, config_home, save_config
+from cct.schema.config import Account, Config, is_valid_name
 from cct.utils import system
 from cct.utils.fs import is_link, same_file
 
@@ -50,9 +51,9 @@ def link_shared(home: Path) -> Iterator[tuple]:
         yield item, link_item(default / item, home / item)
 
 
-def create_profile_dir(cfg: dict, name: str, folder: str | None) -> Path:
+def create_profile_dir(cfg: Config, name: str, folder: str | None) -> Path:
     """Check the name and folder, then create the folder. Does not link or save."""
-    if not NAME_RE.match(name):
+    if not is_valid_name(name):
         raise CctError("Use letters, digits, '-' or '_' (max 32) for the name.")
     if name in account_names(cfg):
         raise CctError(f"Account '{name}' already exists.")
@@ -66,12 +67,12 @@ def create_profile_dir(cfg: dict, name: str, folder: str | None) -> Path:
     return target
 
 
-def register_profile(cfg: dict, name: str, target: Path) -> None:
+def register_profile(cfg: Config, name: str, target: Path) -> None:
     cfg["accounts"].append({"name": name, "dir": str(target)})
     save_config(cfg)
 
 
-def unshared_items(acc: dict) -> list:
+def unshared_items(acc: Account) -> list:
     """Shared items that exist in ~/.claude but are not linked into this profile."""
     home, default = config_home(acc), paths.default_claude_home()
     return [

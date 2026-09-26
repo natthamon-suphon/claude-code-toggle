@@ -39,8 +39,9 @@ doing any work, explain why, and offer a safe option.
 ## Architecture
 
 ```text
-cli.py  →  commands/  →  services/  →  utils/
+cli.py  →  commands/  →  services/  →  schema/  →  utils/
                       ↘  web/server.py
+config.py, paths.py, errors.py: shared by every layer
 ```
 
 - `cli.py`: argparse and dispatch only. `cct statusline` skips argparse because Claude Code calls it on every
@@ -48,6 +49,9 @@ cli.py  →  commands/  →  services/  →  utils/
 - `commands/`: one module per command group. Prints for the user, returns an exit code.
 - `services/`: the logic. Returns data or raises `CctError`; never prints (except `state.log_error` falling back
   to stderr).
+- `schema/`: the shape of every JSON document cct reads or writes (TypedDicts) and the checks for it. Put new
+  fields and validation here, not in services. Readers of state files drop damaged data instead of raising.
+- `config.py`: load and save `~/.cct/config.json` and look up accounts (the shape is `schema/config.py`).
 - `utils/`: generic helpers with no knowledge of accounts or cct's folders.
 - `paths.py`: every path is a function evaluated at call time (tests change `HOME`); never add module-level path
   constants.

@@ -86,6 +86,18 @@ def test_status_bar_clamps_out_of_range_percent(work, three_accounts, monkeypatc
     assert "░░░░░░░░░░░░   -5%" in out
 
 
+def test_status_survives_damaged_usage_file(work, three_accounts, monkeypatch):
+    from cct import paths
+
+    paths.usage_dir().mkdir(parents=True)
+    (paths.usage_dir() / "main.json").write_text(
+        '{"updated_at": "yesterday", "five_hour": {"pct": 5}}', encoding="utf-8"
+    )
+    out = run_status(three_accounts, monkeypatch, tty=False)
+    main_line = out.splitlines()[1]
+    assert "5%" in main_line and main_line.endswith("never")
+
+
 def test_status_mentions_last_session_in_this_folder(work, usage, monkeypatch):
     save_session(str(work), "s", "acc2", time.time())
     out = run_status(usage, monkeypatch, tty=False)

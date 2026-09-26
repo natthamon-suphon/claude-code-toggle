@@ -3,8 +3,8 @@ import os
 import pytest
 
 from cct.commands.accounts import cmd_add, cmd_link, cmd_list
+from cct.config import load_config
 from cct.errors import CctError
-from cct.services.config import load_config
 from cct.utils.fs import is_link
 from helpers import needs_symlinks
 

@@ -107,6 +107,19 @@ def test_run_does_not_ask_when_no_session_ran_here(work, three_accounts, answers
     assert fake.calls == [("main", [])]
 
 
+def test_run_ignores_damaged_session_time(work, three_accounts, answers, monkeypatch):
+    from cct import paths
+    from cct.services.sessions import project_key
+    from cct.utils.fs import write_json
+
+    fake = FakeClaude(records_session=False)
+    monkeypatch.setattr(launcher, "launch", fake)
+    write_json(paths.session_dir() / f"{project_key(str(work))}.json", {"session_id": "s", "updated_at": "now"})
+    prompts = answers("y")
+    assert cmd_run(three_accounts, None, []) == 0
+    assert prompts == []
+
+
 def test_run_yes_resumes_same_session_on_next_account(work, three_accounts, claude, answers):
     prompts = answers("y", "")
     cmd_run(three_accounts, None, [])

@@ -8,7 +8,7 @@ import pytest
 
 from cct import paths
 from cct.commands.statusline import cmd_statusline, statusline_text
-from cct.services.config import save_config
+from cct.config import save_config
 from cct.services.sessions import last_session
 from cct.utils.fs import read_json
 from helpers import statusline_payload, write_usage
@@ -135,6 +135,20 @@ def test_silent_or_failing_previous_statusline_adds_nothing(cfg, monkeypatch, ca
     cfg["prev_statusline"] = f'"{sys.executable}" -c "import sys; sys.exit(2)"'
     save_config(cfg)
     assert hook(monkeypatch, capsys, "{}") == ["[main] 5h - 7d -"]
+
+
+def test_bad_prev_statusline_in_config_does_not_crash(cfg, monkeypatch, capsys):
+    cfg["prev_statusline"] = 5
+    save_config(cfg)
+    assert hook(monkeypatch, capsys, "{}") == [ERROR_LINE]
+    assert "Bad prev_statusline" in logged()
+
+
+def test_non_text_session_id_is_not_saved(work, cfg, monkeypatch, capsys):
+    payload = statusline_payload(work)
+    payload["session_id"] = 12345
+    assert hook(monkeypatch, capsys, json.dumps(payload)) == ["[main] 5h 40% 7d 13%"]
+    assert last_session(work) is None
 
 
 def test_statusline_text_rounds_percent():

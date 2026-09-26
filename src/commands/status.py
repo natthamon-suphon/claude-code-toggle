@@ -6,6 +6,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from cct.schema.config import Config
 from cct.services.sessions import last_session
 from cct.services.usage import usage_rows
 from cct.utils.terminal import supports_color, supports_utf8
@@ -14,7 +15,7 @@ from cct.utils.timefmt import fmt_ago, fmt_left
 BAR_CELLS = 12
 
 
-def cmd_status(cfg: dict) -> int:
+def cmd_status(cfg: Config) -> int:
     full, empty = ("█", "░") if supports_utf8(sys.stdout) else ("#", ".")
     color = supports_color(sys.stdout)
 

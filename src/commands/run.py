@@ -7,9 +7,10 @@ import sys
 import time
 from pathlib import Path
 
+from cct.config import account_names, get_account, next_account
 from cct.errors import CctError
+from cct.schema.config import Account, Config
 from cct.services import launcher
-from cct.services.config import account_names, get_account, next_account
 from cct.services.sessions import last_session
 from cct.services.usage import usage_rows
 from cct.utils.timefmt import fmt_ago
@@ -27,7 +28,7 @@ def short_usage(row: dict) -> str:
     return ", ".join(parts)
 
 
-def launch(acc: dict, args: list) -> int:
+def launch(acc: Account, args: list) -> int:
     if os.environ.get("ANTHROPIC_API_KEY"):
         print(
             "cct: ANTHROPIC_API_KEY is set, so Claude Code may bill that API key instead of this subscription.",
@@ -36,7 +37,7 @@ def launch(acc: dict, args: list) -> int:
     return launcher.launch(acc, args)
 
 
-def ask_switch(cfg: dict, acc: dict):
+def ask_switch(cfg: Config, acc: Account):
     """After Claude exits: offer to resume the same session on another account."""
     if len(cfg["accounts"]) < 2:
         return None
@@ -57,7 +58,7 @@ def ask_switch(cfg: dict, acc: dict):
     return None
 
 
-def cmd_run(cfg: dict, name: str | None, args: list, ask: bool = True) -> int:
+def cmd_run(cfg: Config, name: str | None, args: list, ask: bool = True) -> int:
     acc = get_account(cfg, name) if name else cfg["accounts"][0]
     while True:
         print(f"cct: starting Claude Code as '{acc['name']}'")
@@ -74,7 +75,7 @@ def cmd_run(cfg: dict, name: str | None, args: list, ask: bool = True) -> int:
         acc, args = target, ["--resume", sess["session_id"]]
 
 
-def cmd_next(cfg: dict, name: str | None) -> int:
+def cmd_next(cfg: Config, name: str | None) -> int:
     sess = last_session(Path.cwd())
     if not sess or not sess.get("session_id"):
         raise CctError(

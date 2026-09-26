@@ -234,12 +234,14 @@ python scripts/build_zipapp.py          # dist/cct.pyz
 src/                  the package `cct` (pyproject maps src/ to `cct`; there is no src/cct/ folder)
 ├── __main__.py       entry for `python -m cct` and for the statusline command
 ├── cli.py            argument parsing; hands off to a command
+├── config.py         load and save ~/.cct/config.json; look up accounts
 ├── commands/         one module per command group; prints output, returns an exit code
-├── services/         the logic: config, profiles, launcher, sessions, usage, statusline
+├── services/         the logic: profiles, launcher, sessions, usage, statusline
+├── schema/           the shape of every JSON file cct reads or writes, and its checks
 ├── utils/            generic helpers: JSON files and links, time text, terminal checks
 └── web/              the local dashboard server and its page (static/index.html)
 tests/
-├── unit/             services and utils
+├── unit/             config, schema, services and utils
 ├── commands/         each command, the CLI and the web server
 └── e2e/              cct as a real process with a fake `claude`, and the zipapp build
 ```

@@ -12,7 +12,10 @@ from datetime import datetime
 from pathlib import Path
 
 import cct
-from cct.services.config import account_names, config_home
+from cct.config import account_names, config_home
+from cct.schema.config import Config
+from cct.schema.statusline import StatuslineInput, project_folder, session_id
+from cct.schema.usage import Usage
 from cct.services.sessions import save_session
 from cct.services.state import log_error
 from cct.services.usage import update_usage
@@ -26,7 +29,7 @@ _CCT_COMMAND = re.compile(r"""(?:^|[\s/\\"'])cct\.pyz?\b|[/\\]cct[/\\]__main__\.
 _SCRIPT = re.compile(r"""(?:"([^"]+)"|'([^']+)'|(\S+))\s+statusline\s*$""")
 
 
-def detect_account(cfg: dict) -> str:
+def detect_account(cfg: Config) -> str:
     env_name = os.environ.get("CCT_ACCOUNT")
     if env_name in account_names(cfg):
         return env_name
@@ -39,13 +42,11 @@ def detect_account(cfg: dict) -> str:
     return "unknown"
 
 
-def record(acc_name: str, data: dict) -> dict:
+def record(acc_name: str, data: StatuslineInput) -> Usage:
     """Save usage and 'last session in this folder'. Returns the account's usage."""
     t = time.time()
     usage = update_usage(acc_name, data.get("rate_limits"), t)
-    ws = data.get("workspace") if isinstance(data.get("workspace"), dict) else {}
-    folder = ws.get("project_dir") or data.get("cwd") or ws.get("current_dir")
-    sid = data.get("session_id")
+    folder, sid = project_folder(data), session_id(data)
     if sid and folder:
         save_session(folder, sid, acc_name, t)
     return usage
@@ -93,7 +94,7 @@ def is_cct_command(cmd) -> bool:
     return bool(script) and script.name == "__main__.py" and (script.parent / "services" / "statusline.py").is_file()
 
 
-def settings_files(cfg: dict) -> list:
+def settings_files(cfg: Config) -> list:
     """Each account's settings.json, followed through links, without repeats."""
     files, seen = [], set()
     for acc in cfg["accounts"]:

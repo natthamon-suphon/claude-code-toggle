@@ -19,8 +19,9 @@ evidence, not proven; **[unknown]** = must be tested (see [real-machine-testing.
 ## Layers
 
 ```text
-cli.py  →  commands/  →  services/  →  utils/
+cli.py  →  commands/  →  services/  →  schema/  →  utils/
                       ↘  web/server.py (+ web/static/index.html)
+config.py, paths.py, errors.py: shared by every layer
 ```
 
 | Module | Role |
@@ -31,13 +32,17 @@ cli.py  →  commands/  →  services/  →  utils/
 | `commands/status.py` | `status` (terminal table) |
 | `commands/statusline.py` | `statusline` (the hook) and `install-statusline` |
 | `commands/web.py` | `web` |
-| `services/config.py` | Load, check and save `config.json`; look up accounts |
+| `config.py` | Load and save `config.json`; look up accounts |
 | `services/profiles.py` | Create profile folders; link shared items (symlink, or junction/copy on Windows) |
 | `services/launcher.py` | Build the environment for an account and start `claude` |
 | `services/sessions.py` | The last session per project folder |
-| `services/usage.py` | Parse `rate_limits`; save usage; turn it into ok / reset / unknown views |
+| `services/usage.py` | Save usage; turn it into ok / reset / unknown views |
 | `services/statusline.py` | Detect the running account; record usage and session; build the statusline command |
 | `services/state.py` | Tolerant reads of state files; `error.log` |
+| `schema/config.py` | `Config`, `Account`; `validate_config`, account name rule |
+| `schema/usage.py` | `Usage`, `Window`; drop damaged parts of a usage file |
+| `schema/session.py` | `Session`; drop a session without a usable ID, repair other fields |
+| `schema/statusline.py` | `StatuslineInput` (what Claude Code sends); parse stdin, `rate_limits` windows, project folder |
 | `utils/fs.py` | Atomic JSON writes, link detection |
 | `utils/timefmt.py` | Timestamps in (seconds, milliseconds, ISO-8601), short text out |
 | `utils/terminal.py` | UTF-8 and color support checks |
@@ -78,6 +83,8 @@ Which shell Claude Code uses to run it on Windows is [unknown] (Q5).
 
 ## Files and data shapes
 
+The types and checks live in `src/schema/`; these are examples.
+
 ```jsonc
 // ~/.cct/config.json
 { "accounts": [ {"name": "main", "dir": null},                    // null = ~/.claude
@@ -93,7 +100,7 @@ Which shell Claude Code uses to run it on Windows is [unknown] (Q5).
 { "folder": "/path/to/project", "session_id": "uuid", "account": "work", "updated_at": 1790425406.1 }
 ```
 
-Account names must match `^[A-Za-z0-9_-]{1,32}$`, checked on every load, because they become file names.
+Account names must fully match `[A-Za-z0-9_-]{1,32}`, checked on every load, because they become file names.
 All writes are atomic (write a temp file, then `os.replace`, retried on Windows `PermissionError`).
 
 ## Web page

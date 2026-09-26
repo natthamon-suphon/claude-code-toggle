@@ -3,8 +3,8 @@ import json
 import pytest
 
 from cct.commands.statusline import cmd_install_statusline
+from cct.config import load_config
 from cct.errors import CctError
-from cct.services.config import load_config
 from cct.services.profiles import link_item
 from cct.services.statusline import statusline_command
 from cct.utils.fs import is_link, read_json, write_json

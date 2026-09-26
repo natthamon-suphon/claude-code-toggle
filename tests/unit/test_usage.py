@@ -3,41 +3,11 @@ import time
 import pytest
 
 from cct import paths
-from cct.services.usage import load_usage, parse_window, update_usage, usage_rows, window_view
+from cct.services.usage import load_usage, update_usage, usage_rows, window_view
 from cct.utils.fs import read_json, write_json
 from helpers import write_usage
 
 T = 1_790_000_000.0
-
-
-# ------------------------------------------------------------------ parse_window
-
-
-def test_parse_window_reads_percent_and_reset():
-    assert parse_window({"used_percentage": 42, "resets_at": 1790429406}) == {"pct": 42.0, "resets_at": 1790429406.0}
-
-
-def test_parse_window_accepts_percent_as_text():
-    assert parse_window({"used_percentage": "42.5"})["pct"] == 42.5
-
-
-def test_parse_window_accepts_iso_reset_time():
-    assert parse_window({"used_percentage": 1, "resets_at": "1970-01-01T00:01:40Z"})["resets_at"] == 100.0
-
-
-def test_parse_window_without_reset_time():
-    assert parse_window({"used_percentage": 1}) == {"pct": 1.0, "resets_at": None}
-
-
-@pytest.mark.parametrize("raw", [None, [], "50%", {}, {"used_percentage": None}, {"resets_at": 1}])
-def test_parse_window_missing_data_is_none(raw):
-    assert parse_window(raw) is None
-
-
-def test_parse_window_bad_percent_raises():
-    """The statusline hook catches this and logs it."""
-    with pytest.raises(ValueError):
-        parse_window({"used_percentage": "lots"})
 
 
 # ------------------------------------------------------------------ update_usage

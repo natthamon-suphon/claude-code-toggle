@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-import json
 import sys
 import time
 
+from cct.config import load_config, save_config
 from cct.errors import CctError
-from cct.services.config import load_config, save_config
+from cct.schema.config import Config
+from cct.schema.statusline import parse_input
 from cct.services.state import log_error
 from cct.services.statusline import (
     backup_file,
@@ -38,9 +39,7 @@ def cmd_statusline() -> int:
     try:
         cfg = load_config()
         prev_cmd = cfg.get("prev_statusline")
-        data = json.loads(raw) if raw.strip() else {}
-        if not isinstance(data, dict):
-            raise ValueError("statusline input is not a JSON object")
+        data = parse_input(raw)
         acc_name = detect_account(cfg)
         text = statusline_text(acc_name, record(acc_name, data))
     except (CctError, OSError, ValueError, TypeError) as err:
@@ -54,7 +53,7 @@ def cmd_statusline() -> int:
     return 0
 
 
-def cmd_install_statusline(cfg: dict) -> int:
+def cmd_install_statusline(cfg: Config) -> int:
     ours = statusline_command()
     for path in settings_files(cfg):
         try:

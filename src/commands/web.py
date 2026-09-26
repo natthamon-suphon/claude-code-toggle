@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import webbrowser
 
-from cct.services.config import load_config
+from cct.config import load_config
 from cct.web.server import create_server
 
 

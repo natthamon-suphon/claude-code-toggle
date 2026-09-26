@@ -11,6 +11,8 @@ First public version, planned as 0.1.0. Before this, cct was a single file, `cct
 ### Added
 
 - Installable package `cct` (its files live in `src/`) with a `cct` command, `python -m cct`, and `cct --version`.
+- `src/schema/`: the shape of every JSON file cct reads or writes (`config.json`, usage, sessions, and the
+  statusline input from Claude Code), with the checks for each in one place.
 - `scripts/build_zipapp.py` builds `dist/cct.pyz`, a single file that runs with any Python 3.9+.
 - Test suite (unit, command, web server and end-to-end tests with a fake `claude`), and CI on Linux, macOS and
   Windows with Python 3.9 to 3.13.
@@ -30,5 +32,8 @@ First public version, planned as 0.1.0. Before this, cct was a single file, `cct
   hand-edited; the damaged file counts as "no data" and is logged.
 - A `~/.cct/config.json` that is valid JSON but not an object (for example `[]`) now gives a clear error instead
   of a traceback.
+- More damaged or hand-edited files in `~/.cct` are handled without a traceback: a non-number `updated_at` in a
+  usage or session file, a session ID that isn't text (it broke the web dashboard), a non-text
+  `prev_statusline`, and a non-text `dir` or a name with a trailing newline in `config.json`.
 - `cct install-statusline` no longer loses your previous statusline command when a later `settings.json` is
   invalid JSON.
