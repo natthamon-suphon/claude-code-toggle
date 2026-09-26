@@ -1,0 +1,2 @@
+# Same line endings on every OS, so tests and the zipapp build don't differ on Windows.
+* text=auto eol=lf
