@@ -6,15 +6,15 @@ Guidance for Claude Code (and humans) working in this repository.
 
 `cct` lets one person use several of their own Claude Code accounts on one computer: one `CLAUDE_CONFIG_DIR` per
 account, shared items linked to `~/.claude`, `claude --resume <id>` to move a session, and usage read from the
-statusline JSON. Runtime: Python 3.9+, standard library only. Package: `src/cct`. CLI: `cct`.
+statusline JSON. Runtime: Python 3.9+, standard library only. Package `cct`, whose files live directly in `src/`. CLI: `cct`.
 
 ## Commands
 
 ```bash
-pip install -e ".[dev]"                              # set up (inside a venv)
+pip install -e ".[dev]"                              # set up (inside a venv); tests need this
 pytest                                               # all tests (~15 s); must pass before any commit
 pytest tests/unit/test_usage.py -k window            # one file / one test
-pytest --cov                                         # coverage (currently ~99%)
+pytest --cov                                         # coverage (~97%; __main__.py runs only in subprocesses)
 ruff check . && ruff format --check src tests scripts
 python scripts/build_zipapp.py && python dist/cct.pyz --version
 ```
@@ -53,8 +53,12 @@ cli.py  →  commands/  →  services/  →  utils/
   constants.
 - `utils/system.IS_WINDOWS`: the one switch for Windows-only code paths, so tests can exercise them anywhere.
   Read it as `system.IS_WINDOWS`, not `from ... import IS_WINDOWS`.
-- The statusline command in `settings.json` runs `cct/__main__.py` (or `cct.pyz`) by file path, so it works with
-  pipx, pip, a source checkout, and the zipapp. `services/statusline.is_cct_command` must keep recognizing every
+- Layout: the package `cct` lives directly in `src/` (no `src/cct/` folder). `pyproject.toml` maps it with
+  `package-dir = { "cct" = "src" }` and an explicit `packages` list: **add every new subpackage to that list**.
+  Imports are always `from cct...`. Tests need `pip install -e .`, because `src/` can't be put on `sys.path` by name.
+- The statusline command in `settings.json` runs the package's `__main__.py` (or `cct.pyz`) by file path, so it
+  works with pipx, pip, a source checkout, and the zipapp. Run by path, `__main__.py` loads the package from its own
+  folder under the name `cct`. `services/statusline.is_cct_command` must keep recognizing every
   form older versions installed (including the old single-file `cct.py`).
 
 Details, data shapes and the technical facts behind the design: `docs/architecture.md`.
@@ -88,7 +92,7 @@ When one is answered, update that file (change [unknown] to [verified] with the 
 
 ## Releasing
 
-1. Update `__version__` in `src/cct/__init__.py` and move the `Unreleased` notes in `CHANGELOG.md` under the new
+1. Update `__version__` in `src/__init__.py` and move the `Unreleased` notes in `CHANGELOG.md` under the new
    version.
 2. `pytest`, `ruff`, `python -m build`, `python scripts/build_zipapp.py`.
 3. Tag `vX.Y.Z` and attach `dist/cct.pyz` to the GitHub release.

@@ -14,7 +14,7 @@ import zipapp
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PACKAGE = ROOT / "src" / "cct"
+PACKAGE = ROOT / "src"  # copied into the archive as cct/
 
 # zipapp's own generated __main__ drops main()'s return value, so exit codes would be lost.
 MAIN = "import sys\nfrom cct.cli import main\nsys.exit(main())\n"
@@ -24,7 +24,7 @@ def build(output: Path) -> Path:
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         stage = Path(tmp)
-        shutil.copytree(PACKAGE, stage / "cct", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        shutil.copytree(PACKAGE, stage / "cct", ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.egg-info"))
         (stage / "__main__.py").write_text(MAIN, encoding="utf-8")
         zipapp.create_archive(stage, target=output, interpreter="/usr/bin/env python3", compressed=True)
     return output

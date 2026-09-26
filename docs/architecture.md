@@ -70,8 +70,9 @@ cct status / cct web ◀── reads ~/.cct/usage and ~/.cct/sessions
 ### The statusline command
 
 `install-statusline` writes `<python> <entry> statusline`, where `<entry>` is the `.pyz` file when cct runs as a
-zipapp, and otherwise the package's `cct/__main__.py`. `__main__.py` fixes `sys.path` itself when it is run by
-path, so the command works for pipx, pip, a source checkout and the zipapp. `<python>` is `sys.executable` unless
+zipapp, and otherwise the package's `__main__.py` (`site-packages/cct/__main__.py` when installed,
+`src/__main__.py` in a source checkout). Run by path, `__main__.py` loads the package from its own folder under
+the name `cct`, so the command works for pipx, pip, a source checkout and the zipapp. `<python>` is `sys.executable` unless
 its path contains spaces (then `py -3` or `python` on Windows, `python3` elsewhere). Paths use forward slashes.
 Which shell Claude Code uses to run it on Windows is [unknown] (Q5).
 

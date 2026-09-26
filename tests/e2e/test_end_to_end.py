@@ -35,9 +35,10 @@ def test_version(machine):
 
 
 def test_python_dash_m(machine):
+    """`python -m cct` uses the installed package (`pip install -e .` in development)."""
     result = subprocess.run(
         [sys.executable, "-m", "cct", "--version"],
-        env={**machine.env, "PYTHONPATH": str(machine.src)},  # stands in for an install
+        env=machine.env,
         cwd=machine.work,
         capture_output=True,
         text=True,
@@ -159,7 +160,7 @@ def test_installed_command_runs_in_a_shell_from_any_folder(machine, tmp_path):
     assert installed.returncode == 0, installed.stderr
     settings = json.loads((machine.home / ".claude" / "settings.json").read_text(encoding="utf-8"))
     command = settings["statusLine"]["command"]
-    assert command.endswith("/cct/__main__.py statusline")
+    assert command.endswith(f"{machine.entry.resolve().as_posix()} statusline")
     payload = {"session_id": "s", "cwd": str(tmp_path), "rate_limits": {"five_hour": {"used_percentage": 12}}}
     shell = subprocess.run(
         command, shell=True, input=json.dumps(payload), cwd=tmp_path, env=machine.env, capture_output=True, text=True

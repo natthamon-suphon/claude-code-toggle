@@ -10,7 +10,7 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[2]
 SRC = REPO / "src"
-ENTRY = SRC / "cct" / "__main__.py"
+ENTRY = SRC / "__main__.py"
 FAKE_CLAUDE = Path(__file__).with_name("fake_claude.py")
 
 
@@ -19,7 +19,7 @@ class Env:
 
     def __init__(self, root: Path, home: Path):
         self.home, self.work, self.log = home, root / "work" / "api", root / "fake.log"
-        self.src, self.entry = SRC, ENTRY
+        self.entry = ENTRY
         self.work.mkdir(parents=True)
         bin_dir = root / "bin"
         bin_dir.mkdir()

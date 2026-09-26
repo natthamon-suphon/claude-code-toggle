@@ -5,7 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from cct.services.config import load_config, save_config
+try:
+    import cct  # noqa: F401  (the package lives in src/ and is mapped to `cct` by `pip install -e .`)
+except ModuleNotFoundError:
+    pytest.exit('cct is not importable. Install it first: pip install -e ".[dev]"', returncode=4)
+
+from cct.services.config import load_config, save_config  # noqa: E402
 
 # Variables that change what cct does. No test may see the developer's real values.
 CCT_ENV = ("CCT_HOME", "CLAUDE_CONFIG_DIR", "CCT_ACCOUNT", "ANTHROPIC_API_KEY", "NO_COLOR", "WT_SESSION")

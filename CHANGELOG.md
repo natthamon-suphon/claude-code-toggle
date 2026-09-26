@@ -10,7 +10,7 @@ First public version, planned as 0.1.0. Before this, cct was a single file, `cct
 
 ### Added
 
-- Installable package (`src/cct`) with a `cct` command, `python -m cct`, and `cct --version`.
+- Installable package `cct` (its files live in `src/`) with a `cct` command, `python -m cct`, and `cct --version`.
 - `scripts/build_zipapp.py` builds `dist/cct.pyz`, a single file that runs with any Python 3.9+.
 - Test suite (unit, command, web server and end-to-end tests with a fake `claude`), and CI on Linux, macOS and
   Windows with Python 3.9 to 3.13.
@@ -19,7 +19,8 @@ First public version, planned as 0.1.0. Before this, cct was a single file, `cct
 
 ### Changed
 
-- The statusline command in `settings.json` now runs `cct/__main__.py` (or `cct.pyz`) instead of `cct.py`.
+- The statusline command in `settings.json` now runs the package's `__main__.py` (or `cct.pyz`) instead of
+  `cct.py`.
   Run `cct install-statusline` once after upgrading: it recognizes the old `cct.py` command and replaces it.
   Your data in `~/.cct` is kept as it is.
 

@@ -47,8 +47,11 @@ Changelog = "https://github.com/natthamon-suphon/claude-code-toggle/blob/main/CH
 [tool.setuptools.dynamic]
 version = { attr = "cct.__version__" }
 
-[tool.setuptools.packages.find]
-where = ["src"]
+# The package `cct` lives directly in src/ (no src/cct/ folder).
+# Add every new subpackage to `packages`.
+[tool.setuptools]
+package-dir = { "cct" = "src" }
+packages = ["cct", "cct.commands", "cct.services", "cct.utils", "cct.web"]
 
 [tool.setuptools.package-data]
 "cct.web" = ["static/*.html"]
@@ -56,7 +59,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
-pythonpath = ["src", "tests"]
+pythonpath = ["tests"]  # cct itself comes from `pip install -e .`
 addopts = ["--import-mode=importlib", "-ra", "--strict-markers"]
 markers = [
     "e2e: runs cct as a separate process with a fake `claude` binary",

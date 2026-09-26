@@ -222,7 +222,7 @@ please open an issue.
 git clone https://github.com/natthamon-suphon/claude-code-toggle
 cd claude-code-toggle
 python3 -m venv .venv && source .venv/bin/activate    # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+pip install -e ".[dev]"                 # needed before the tests: it maps src/ to the package `cct`
 
 pytest                                  # all tests, about 15 seconds
 pytest --cov                            # with coverage
@@ -231,7 +231,8 @@ python scripts/build_zipapp.py          # dist/cct.pyz
 ```
 
 ```text
-src/cct/
+src/                  the package `cct` (pyproject maps src/ to `cct`; there is no src/cct/ folder)
+├── __main__.py       entry for `python -m cct` and for the statusline command
 ├── cli.py            argument parsing; hands off to a command
 ├── commands/         one module per command group; prints output, returns an exit code
 ├── services/         the logic: config, profiles, launcher, sessions, usage, statusline

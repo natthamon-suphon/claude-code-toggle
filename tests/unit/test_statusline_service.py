@@ -131,10 +131,9 @@ def test_run_previous_os_error_is_logged(monkeypatch):
 # ------------------------------------------------------------------ command string
 
 
-def test_entry_script_from_source_is_the_package_main():
+def test_entry_script_is_the_package_main():
     entry = sl.entry_script()
-    assert entry.name == "__main__.py"
-    assert entry.parent.name == "cct"
+    assert entry == (Path(cct.__file__).resolve().parent / "__main__.py")
     assert entry.is_file()
 
 
@@ -220,6 +219,21 @@ def test_is_cct_command_true(cmd):
 )
 def test_is_cct_command_false(cmd):
     assert not sl.is_cct_command(cmd)
+
+
+def test_is_cct_command_source_checkout_entry():
+    """A source checkout runs src/__main__.py; it is recognized by cct's files next to it."""
+    entry = (Path(cct.__file__).resolve().parent / "__main__.py").as_posix()
+    assert sl.is_cct_command(f"/usr/bin/python3 {entry} statusline")
+    assert sl.is_cct_command(f'"C:/Program Files/Python/python.exe" "{entry}" statusline')
+
+
+def test_is_cct_command_other_main_py_is_not_ours(tmp_path):
+    other = tmp_path / "src" / "__main__.py"
+    other.parent.mkdir()
+    other.write_text("print('mine')", encoding="utf-8")
+    assert not sl.is_cct_command(f"python3 {other.as_posix()} statusline")
+    assert not sl.is_cct_command(f"python3 {(tmp_path / 'missing' / '__main__.py').as_posix()} statusline")
 
 
 # ------------------------------------------------------------------ settings files

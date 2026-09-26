@@ -20,8 +20,10 @@ from cct.utils import system
 from cct.utils.fs import same_file
 
 # A statusline command that runs cct: the old single file (cct.py), the zipapp
-# (cct.pyz), the package entry (cct/__main__.py), or `python -m cct`.
+# (cct.pyz), the installed package entry (cct/__main__.py), or `python -m cct`.
 _CCT_COMMAND = re.compile(r"""(?:^|[\s/\\"'])cct\.pyz?\b|[/\\]cct[/\\]__main__\.py\b|-m\s+cct\b""")
+# The script path in `<python> <script> statusline`, quoted or not.
+_SCRIPT = re.compile(r"""(?:"([^"]+)"|'([^']+)'|(\S+))\s+statusline\s*$""")
 
 
 def detect_account(cfg: dict) -> str:
@@ -60,7 +62,7 @@ def run_previous(cmd: str, raw: str) -> str:
 
 
 def entry_script() -> Path:
-    """The file that runs cct: the .pyz when running as a zipapp, else cct/__main__.py."""
+    """The file that runs cct: the .pyz when running as a zipapp, else the package's __main__.py."""
     package_dir = Path(os.path.abspath(cct.__file__)).parent
     if package_dir.parent.is_file():  # .../cct.pyz/cct/__init__.py
         return package_dir.parent.resolve()
@@ -81,7 +83,14 @@ def statusline_command() -> str:
 
 def is_cct_command(cmd) -> bool:
     """True for a statusline command that some version of cct installed."""
-    return bool(cmd) and cmd.rstrip().endswith("statusline") and bool(_CCT_COMMAND.search(cmd))
+    if not cmd or not cmd.rstrip().endswith("statusline"):
+        return False
+    if _CCT_COMMAND.search(cmd):
+        return True
+    # A source checkout runs src/__main__.py, whose folder name says nothing; look for cct's files next to it.
+    match = _SCRIPT.search(cmd)
+    script = Path(next(group for group in match.groups() if group)) if match else None
+    return bool(script) and script.name == "__main__.py" and (script.parent / "services" / "statusline.py").is_file()
 
 
 def settings_files(cfg: dict) -> list:
