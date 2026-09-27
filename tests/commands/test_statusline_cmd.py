@@ -91,6 +91,68 @@ def test_bad_input_logs_and_prints_short_error(cfg, monkeypatch, capsys, stdin):
     assert "[statusline]" in logged()
 
 
+@pytest.mark.parametrize("pct", ['"nan"', '"inf"', "NaN", "Infinity", "1e400", "1" + "0" * 400])
+def test_percent_that_is_not_finite_is_logged_not_saved(work, cfg, monkeypatch, capsys, pct):
+    stdin = '{"session_id": "s", "rate_limits": {"five_hour": {"used_percentage": PCT}}}'.replace("PCT", pct)
+    assert hook(monkeypatch, capsys, stdin) == [ERROR_LINE]
+    assert "[statusline]" in logged()
+    assert not (paths.usage_dir() / "main.json").exists()
+
+
+def test_impossible_reset_time_is_saved_as_unknown(work, cfg, monkeypatch, capsys):
+    payload = statusline_payload(work, five=40, seven=13)
+    payload["rate_limits"]["five_hour"]["resets_at"] = 1e17
+    assert hook(monkeypatch, capsys, json.dumps(payload)) == ["[main] 5h 40% 7d 13%"]
+    assert read_json(paths.usage_dir() / "main.json")["five_hour"] == {"pct": 40.0, "resets_at": None}
+
+
+def run_with_code_page(monkeypatch, stdin: bytes, code_page: str) -> bytes:
+    """Run the hook with stdin and stdout set up like a Windows pipe that uses the given code page."""
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(stdin), encoding=code_page))
+    out = io.BytesIO()
+    monkeypatch.setattr(sys, "stdout", io.TextIOWrapper(out, encoding=code_page))
+    assert cmd_statusline() == 0
+    sys.stdout.flush()
+    return out.getvalue()
+
+
+@pytest.mark.parametrize("code_page", ["cp1252", "cp874"])
+def test_utf8_input_is_read_whatever_the_code_page(tmp_path, cfg, monkeypatch, code_page):
+    """Claude Code sends UTF-8. On Windows, Python would decode the pipe with the local code page."""
+    folder = tmp_path / "โปรเจกต์"  # "ก" is the byte 0x81 in UTF-8, which cp1252 can't decode
+    folder.mkdir()
+    payload = json.dumps(statusline_payload(folder, session_id="s-th"), ensure_ascii=False).encode("utf-8")
+    assert run_with_code_page(monkeypatch, payload, code_page) == b"[main] 5h 40% 7d 13%\n"
+    assert logged() == ""
+    assert last_session(folder)["folder"] == str(folder)
+
+
+def test_previous_statusline_output_is_passed_on_unchanged(cfg, monkeypatch):
+    """Its output may hold characters the console code page can't encode, or bytes that aren't UTF-8."""
+    code = "import sys; sys.stdout.buffer.write(b'\\xe0\\xb9\\x84\\xe0\\xb8\\x97\\xe0\\xb8\\xa2 \\xff')"
+    cfg["prev_statusline"] = f'"{sys.executable}" -c "{code}"'
+    save_config(cfg)
+    out = run_with_code_page(monkeypatch, b"{}", "cp1252")
+    assert out == b"[main] 5h - 7d -\n" + "ไทย".encode() + b" \xff\n"
+
+
+def test_text_only_stdout_still_gets_the_line(cfg, monkeypatch):
+    """Some wrappers replace sys.stdout with a text stream that has no byte buffer."""
+    monkeypatch.setattr(sys, "stdin", io.StringIO("{}"))
+    out = io.StringIO()
+    monkeypatch.setattr(sys, "stdout", out)
+    assert cmd_statusline() == 0
+    assert out.getvalue() == "[main] 5h - 7d -\n"
+
+
+def test_missing_stdin_and_stdout_do_not_crash(cfg, monkeypatch):
+    """Python sets them to None when the parent process gives none."""
+    monkeypatch.setattr(sys, "stdin", None)
+    monkeypatch.setattr(sys, "stdout", None)
+    assert cmd_statusline() == 0
+    assert logged() == ""
+
+
 @pytest.mark.parametrize(
     "stdin",
     [
@@ -111,7 +173,16 @@ def test_broken_config_prints_error_line(monkeypatch, capsys):
     assert "not valid JSON" in logged()
 
 
-@pytest.mark.parametrize("damage", ["[1]", "{", '{"five_hour": "x", "seven_day": {"pct": "10"}}'])
+@pytest.mark.parametrize(
+    "damage",
+    [
+        "[1]",
+        "{",
+        '{"five_hour": "x", "seven_day": {"pct": "10"}}',
+        '{"five_hour": {"pct": NaN}, "seven_day": {"pct": Infinity}}',
+        '{"five_hour": {"pct": 1e999}, "seven_day": {"pct": 1' + "0" * 400 + "}}",
+    ],
+)
 def test_damaged_usage_file_does_not_crash(cfg, monkeypatch, capsys, damage):
     paths.usage_dir().mkdir(parents=True)
     (paths.usage_dir() / "main.json").write_text(damage, encoding="utf-8")

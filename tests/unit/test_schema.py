@@ -5,7 +5,7 @@ import time
 import pytest
 
 from cct.errors import CctError
-from cct.schema.common import is_number
+from cct.schema.common import MAX_TIMESTAMP, is_number, is_timestamp
 from cct.schema.config import default_config, is_valid_name, validate_config
 from cct.schema.session import Session, valid_session
 from cct.schema.statusline import parse_input, parse_window, project_folder, session_id
@@ -16,11 +16,26 @@ from cct.services.usage import update_usage
 T = 1_790_000_000.0
 
 
+NAN, INF = float("nan"), float("inf")
+HUGE = 10**400  # json.loads turns a long run of digits into an int too big for a float
+
+
 @pytest.mark.parametrize(
-    "value, expected", [(1, True), (1.5, True), (0, True), (True, False), ("1", False), (None, False)]
-)
+    "value, expected",
+    [(1, True), (1.5, True), (0, True), (-3, True), (True, False), ("1", False), (None, False),
+     (NAN, False), (INF, False), (-INF, False), (HUGE, False)],
+)  # fmt: skip
 def test_is_number(value, expected):
     assert is_number(value) is expected
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [(0, True), (T, True), (MAX_TIMESTAMP, True), (-1, False), (MAX_TIMESTAMP + 1, False), (1e17, False),
+     (NAN, False), (INF, False), (HUGE, False), (True, False), ("1", False)],
+)  # fmt: skip
+def test_is_timestamp(value, expected):
+    assert is_timestamp(value) is expected
 
 
 # ------------------------------------------------------------------ config
@@ -61,9 +76,17 @@ def test_valid_window():
     assert valid_window({"pct": 40, "resets_at": "soon"}) == {"pct": 40, "resets_at": None}
 
 
-@pytest.mark.parametrize("raw", [None, [], "x", {}, {"pct": "40"}, {"pct": True}, {"resets_at": T}])
+@pytest.mark.parametrize(
+    "raw",
+    [None, [], "x", {}, {"pct": "40"}, {"pct": True}, {"resets_at": T}, {"pct": NAN}, {"pct": INF}, {"pct": HUGE}],
+)
 def test_valid_window_rejects_damaged_windows(raw):
     assert valid_window(raw) is None
+
+
+@pytest.mark.parametrize("resets_at", [NAN, INF, -1, 1e17, HUGE])
+def test_valid_window_drops_impossible_reset_times(resets_at):
+    assert valid_window({"pct": 40, "resets_at": resets_at}) == {"pct": 40, "resets_at": None}
 
 
 @pytest.mark.parametrize("raw", [None, [], "x", 5])
@@ -79,6 +102,13 @@ def test_valid_usage_keeps_good_parts_only():
         "unknown": 1,
     }
     assert valid_usage(raw) == {"five_hour": {"pct": 10, "resets_at": T}}
+
+
+@pytest.mark.parametrize("updated_at", [NAN, INF, -1, 1e17, HUGE])
+def test_valid_usage_drops_impossible_update_times(updated_at):
+    assert valid_usage({"five_hour": {"pct": 10, "resets_at": T}, "updated_at": updated_at}) == {
+        "five_hour": {"pct": 10, "resets_at": T}
+    }
 
 
 def test_saved_usage_matches_the_schema():
@@ -104,6 +134,12 @@ def test_valid_session_needs_a_session_id(raw):
 def test_valid_session_repairs_other_damaged_fields():
     raw = {"session_id": "abc", "folder": 5, "account": ["x"], "updated_at": "yesterday"}
     assert valid_session(raw) == {"folder": "", "session_id": "abc", "account": "", "updated_at": 0.0}
+
+
+@pytest.mark.parametrize("updated_at", [NAN, INF, 1e17, HUGE])
+def test_valid_session_repairs_impossible_update_times(updated_at):
+    raw = {"folder": "/p", "session_id": "abc", "account": "main", "updated_at": updated_at}
+    assert valid_session(raw)["updated_at"] == 0.0
 
 
 def test_saved_session_matches_the_schema(work):
@@ -177,6 +213,18 @@ def test_parse_window_bad_percent_raises(pct, error):
     """The statusline hook catches these and logs them."""
     with pytest.raises(error):
         parse_window({"used_percentage": pct})
+
+
+@pytest.mark.parametrize("pct", ["nan", "inf", "-Infinity", "1e400", NAN, INF, HUGE])
+def test_parse_window_rejects_percent_that_is_not_finite(pct):
+    """Saved, it would break `cct status` and the dashboard's JSON. The statusline hook logs it instead."""
+    with pytest.raises(ValueError):
+        parse_window({"used_percentage": pct})
+
+
+@pytest.mark.parametrize("resets_at", [1e17, INF, NAN, HUGE, "1" * 400, "9999-12-31T00:00:00Z", -5])
+def test_parse_window_drops_impossible_reset_time(resets_at):
+    assert parse_window({"used_percentage": 1, "resets_at": resets_at}) == {"pct": 1.0, "resets_at": None}
 
 
 def test_parsed_window_matches_the_saved_shape():

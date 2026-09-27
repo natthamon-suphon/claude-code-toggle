@@ -32,24 +32,47 @@ def statusline_text(acc_name: str, usage: dict) -> str:
     return " ".join(parts)
 
 
+def read_stdin() -> bytes:
+    # Read bytes: on Windows, Python decodes pipes with the local code page (cp1252, cp874, ...),
+    # which garbles or rejects the UTF-8 that Claude Code sends, for example a Thai folder name.
+    if sys.stdin is None:
+        return b""
+    buffer = getattr(sys.stdin, "buffer", None)
+    return buffer.read() if buffer is not None else sys.stdin.read().encode("utf-8")
+
+
+def write_out(data: bytes) -> None:
+    """Write bytes to stdout as they are, so the console code page can't reject or change any character."""
+    if sys.stdout is None:
+        return
+    buffer = getattr(sys.stdout, "buffer", None)
+    if buffer is None:
+        sys.stdout.write(data.decode("utf-8", errors="replace"))
+        return
+    sys.stdout.flush()
+    buffer.write(data)
+    buffer.flush()
+
+
 def cmd_statusline() -> int:
     """Called by Claude Code with JSON on stdin. Must never crash its screen."""
-    raw = sys.stdin.read()
+    raw = b""
     prev_cmd = None
     try:
+        raw = read_stdin()
         cfg = load_config()
         prev_cmd = cfg.get("prev_statusline")
-        data = parse_input(raw)
+        data = parse_input(raw.decode("utf-8", errors="replace"))
         acc_name = detect_account(cfg)
         text = statusline_text(acc_name, record(acc_name, data))
     except (CctError, OSError, ValueError, TypeError) as err:
         log_error("statusline", err)
         text = "[cct error: see ~/.cct/error.log]"
-    print(text)
+    write_out(text.encode("utf-8", errors="replace") + b"\n")
     if prev_cmd:
         out = run_previous(prev_cmd, raw)
         if out:
-            print(out)
+            write_out(out + b"\n")
     return 0
 
 

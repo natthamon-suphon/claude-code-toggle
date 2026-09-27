@@ -6,6 +6,16 @@ All notable changes to this project are listed here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- `cct statusline` no longer crashes when Python's pipe encoding is not UTF-8, which is the default on Windows
+  (cp1252, cp874, ...). Folder names with Thai or other non-Latin characters were garbled or caused a traceback in
+  Claude Code's status bar. cct now reads the JSON as UTF-8 and passes your previous statusline's output on
+  unchanged.
+- `NaN`, `Infinity`, very large numbers and reset times after the year 3000 no longer crash `cct status` or make
+  the `cct web` data unreadable. In a saved file they count as no data. In the statusline input, a percent like
+  that is logged to `~/.cct/error.log` instead of being saved.
+
 ## [0.1.0] - 2026-09-27
 
 First public version. Before this, cct was a single file, `cct.py`.

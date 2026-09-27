@@ -48,8 +48,9 @@ Counts Claude Code on this computer only. claude.ai and your other computers are
 ## How it works
 
 1. **One config folder per account.** `CLAUDE_CONFIG_DIR` tells Claude Code which config folder to use
-   ([docs](https://code.claude.com/docs/en/env-vars)), and each folder signs in separately. cct gives each extra
-   account its own folder, `~/.claude-NAME`. Your first account keeps using `~/.claude`.
+   ([docs](https://code.claude.com/docs/en/env-vars)). cct relies on each folder keeping its own login (not yet
+   confirmed on a real machine: [Q3](docs/real-machine-testing.md)). cct gives each extra account its own folder,
+   `~/.claude-NAME`. Your first account keeps using `~/.claude`.
 2. **Shared work.** Inside each extra folder, cct links sessions, settings, `CLAUDE.md`, skills, commands and
    agents back to `~/.claude`. Every account sees the same sessions and setup.
 3. **Usage from the statusline.** Claude Code sends JSON to statusline scripts, including `rate_limits` for

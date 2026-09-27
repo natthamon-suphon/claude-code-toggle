@@ -35,7 +35,10 @@ def test_to_epoch_accepts_seconds_milliseconds_and_iso(value, expected):
     assert to_epoch(value) == pytest.approx(expected)
 
 
-@pytest.mark.parametrize("value", [None, True, False, "", "soon", "12abc", "2026-13-45T00:00:00Z", [], {}, object()])
+@pytest.mark.parametrize(
+    "value",
+    [None, True, False, "", "soon", "12abc", "2026-13-45T00:00:00Z", "0001-01-01T00:00:00", 10**400, [], {}, object()],
+)
 def test_to_epoch_returns_none_for_anything_else(value):
     assert to_epoch(value) is None
 

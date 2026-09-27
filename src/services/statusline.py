@@ -52,13 +52,13 @@ def record(acc_name: str, data: StatuslineInput) -> Usage:
     return usage
 
 
-def run_previous(cmd: str, raw: str) -> str:
-    """Run the statusline the user had before cct, with the same input."""
+def run_previous(cmd: str, raw: bytes) -> bytes:
+    """Run the statusline the user had before cct, with the same input. Its output bytes are passed on unchanged."""
     try:
-        r = subprocess.run(cmd, shell=True, input=raw, capture_output=True, text=True, timeout=5)
+        r = subprocess.run(cmd, shell=True, input=raw, capture_output=True, timeout=5)
     except (OSError, subprocess.SubprocessError) as err:
         log_error("previous statusline", err)
-        return ""
+        return b""
     return r.stdout.rstrip()
 
 

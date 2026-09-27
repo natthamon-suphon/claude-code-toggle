@@ -30,7 +30,8 @@ ruff format --check src tests scripts    # or `ruff format src tests scripts` to
 ## Guidelines
 
 - Runtime code uses the Python standard library only and must work on Python 3.9.
-- Keep the layers: `cli` → `commands` (print, return exit codes) → `services` (logic, no printing) → `utils`.
+- Keep the layers: `cli` → `commands` (print, return exit codes) → `services` (logic, no printing) → `schema`
+  (JSON shapes and their checks) → `utils`.
 - Add or update tests for every behavior change. Tests get their own fake `HOME` automatically; never write to a
   real `~/.claude` or `~/.cct`.
 - The statusline hook must never crash. New code on that path handles bad input by logging it.

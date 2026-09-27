@@ -14,7 +14,7 @@ statusline JSON. Runtime: Python 3.9+, standard library only. Package `cct`, who
 pip install -e ".[dev]"                              # set up (inside a venv); tests need this
 pytest                                               # all tests (~15 s); must pass before any commit
 pytest tests/unit/test_usage.py -k window            # one file / one test
-pytest --cov                                         # coverage (~97%; __main__.py runs only in subprocesses)
+pytest --cov                                         # coverage (~98%; __main__.py runs only in subprocesses)
 ruff check . && ruff format --check src tests scripts
 python scripts/build_zipapp.py && python dist/cct.pyz --version
 ```

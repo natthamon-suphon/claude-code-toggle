@@ -12,7 +12,10 @@ def to_epoch(value):
     if isinstance(value, bool) or value is None:
         return None
     if isinstance(value, (int, float)):
-        return value / 1000 if value > 1e11 else float(value)  # accept milliseconds too
+        try:
+            return value / 1000 if value > 1e11 else float(value)  # accept milliseconds too
+        except OverflowError:  # an int too big for a float
+            return None
     if isinstance(value, str):
         text = value.strip()
         if re.fullmatch(r"\d+(\.\d+)?", text):
@@ -21,7 +24,7 @@ def to_epoch(value):
             text = text[:-1] + "+00:00"
         try:
             return datetime.fromisoformat(text).timestamp()
-        except ValueError:
+        except (ValueError, OverflowError, OSError):
             return None
     return None
 

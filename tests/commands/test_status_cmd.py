@@ -98,6 +98,22 @@ def test_status_survives_damaged_usage_file(work, three_accounts, monkeypatch):
     assert "5%" in main_line and main_line.endswith("never")
 
 
+def test_status_survives_numbers_json_allows_but_python_cannot_use(work, three_accounts, monkeypatch):
+    """NaN, Infinity, huge ints and far-future times in a hand-edited file count as no data."""
+    from cct import paths
+
+    paths.usage_dir().mkdir(parents=True)
+    (paths.usage_dir() / "main.json").write_text(
+        '{"updated_at": Infinity, "five_hour": {"pct": NaN, "resets_at": 1e17},'
+        ' "seven_day": {"pct": 5, "resets_at": 1' + "0" * 400 + "}}",
+        encoding="utf-8",
+    )
+    out = run_status(three_accounts, monkeypatch, tty=False)
+    main_line = out.splitlines()[1]
+    assert main_line.startswith("main       not seen yet")
+    assert "5%" in main_line and main_line.endswith("never")
+
+
 def test_status_mentions_last_session_in_this_folder(work, usage, monkeypatch):
     save_session(str(work), "s", "acc2", time.time())
     out = run_status(usage, monkeypatch, tty=False)

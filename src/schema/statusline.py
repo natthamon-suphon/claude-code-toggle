@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 from typing import Any, TypedDict
 
+from cct.schema.common import is_number, is_timestamp
 from cct.schema.usage import Window
 from cct.utils.timefmt import to_epoch
 
@@ -56,7 +57,14 @@ def session_id(data: StatuslineInput) -> str | None:
 
 
 def parse_window(raw) -> Window | None:
-    """One rate_limits window as cct saves it. A percent that isn't a number raises ValueError or TypeError."""
+    """One rate_limits window as cct saves it. A percent that isn't a finite number raises ValueError or TypeError."""
     if not isinstance(raw, dict) or raw.get("used_percentage") is None:
         return None
-    return {"pct": float(raw["used_percentage"]), "resets_at": to_epoch(raw.get("resets_at"))}
+    try:
+        pct = float(raw["used_percentage"])
+    except OverflowError as err:  # an int too big for a float
+        raise ValueError("used_percentage is too large") from err
+    if not is_number(pct):
+        raise ValueError(f"used_percentage is not a finite number: {pct}")
+    resets_at = to_epoch(raw.get("resets_at"))
+    return {"pct": pct, "resets_at": resets_at if is_timestamp(resets_at) else None}

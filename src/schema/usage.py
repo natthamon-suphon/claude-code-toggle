@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TypedDict
 
-from cct.schema.common import is_number
+from cct.schema.common import is_number, is_timestamp
 
 WINDOWS = ("five_hour", "seven_day")
 
@@ -25,7 +25,7 @@ def valid_window(raw) -> Window | None:
     if not isinstance(raw, dict) or not is_number(raw.get("pct")):
         return None
     resets_at = raw.get("resets_at")
-    return {"pct": raw["pct"], "resets_at": resets_at if is_number(resets_at) else None}
+    return {"pct": raw["pct"], "resets_at": resets_at if is_timestamp(resets_at) else None}
 
 
 def valid_usage(raw) -> Usage:
@@ -37,6 +37,6 @@ def valid_usage(raw) -> Usage:
         window = valid_window(raw.get(key))
         if window is not None:
             usage[key] = window
-    if is_number(raw.get("updated_at")):
+    if is_timestamp(raw.get("updated_at")):
         usage["updated_at"] = raw["updated_at"]
     return usage

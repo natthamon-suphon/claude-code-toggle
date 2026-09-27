@@ -103,11 +103,17 @@ def py_cmd(code: str) -> str:
 
 
 def test_run_previous_passes_input_and_returns_output():
-    assert sl.run_previous(py_cmd("import sys; print(sys.stdin.read().upper())"), "abc") == "ABC"
+    assert sl.run_previous(py_cmd("import sys; print(sys.stdin.read().upper())"), b"abc") == b"ABC"
+
+
+def test_run_previous_passes_bytes_through_unchanged():
+    """Whatever the old statusline prints reaches Claude Code as it is, whatever the console code page."""
+    code = "import sys; sys.stdout.buffer.write(sys.stdin.buffer.read()[::-1])"
+    assert sl.run_previous(py_cmd(code), "ไทย".encode() + b"\xff") == b"\xff" + "ไทย".encode()[::-1]
 
 
 def test_run_previous_failing_command_returns_its_output():
-    assert sl.run_previous(py_cmd("import sys; sys.exit(1)"), "") == ""
+    assert sl.run_previous(py_cmd("import sys; sys.exit(1)"), b"") == b""
 
 
 def test_run_previous_timeout_is_logged(monkeypatch):
@@ -115,7 +121,7 @@ def test_run_previous_timeout_is_logged(monkeypatch):
         raise subprocess.TimeoutExpired("x", 5)
 
     monkeypatch.setattr(sl.subprocess, "run", slow)
-    assert sl.run_previous("sleep 10", "") == ""
+    assert sl.run_previous("sleep 10", b"") == b""
     assert "previous statusline" in paths.error_log().read_text(encoding="utf-8")
 
 
@@ -124,7 +130,7 @@ def test_run_previous_os_error_is_logged(monkeypatch):
         raise OSError("no shell")
 
     monkeypatch.setattr(sl.subprocess, "run", broken)
-    assert sl.run_previous("x", "") == ""
+    assert sl.run_previous("x", b"") == b""
     assert "no shell" in paths.error_log().read_text(encoding="utf-8")
 
 

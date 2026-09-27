@@ -179,6 +179,28 @@ def test_statusline_process_never_fails(machine, stdin):
     assert "Traceback" not in result.stdout + result.stderr
 
 
+@pytest.mark.parametrize("code_page", ["cp1252", "cp874"])
+def test_statusline_reads_utf8_when_python_uses_another_code_page(machine, tmp_path, code_page):
+    """On Windows, pipes use the local code page (cp1252, cp874, ...). PYTHONIOENCODING does the same here."""
+    from cct.services.sessions import last_session
+
+    folder = tmp_path / "โปรเจกต์"
+    folder.mkdir()
+    payload = {"session_id": "s-th", "cwd": str(folder), "rate_limits": {"five_hour": {"used_percentage": 12}}}
+    result = subprocess.run(
+        [sys.executable, str(machine.entry), "statusline"],
+        input=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        env={**machine.env, "PYTHONIOENCODING": code_page},
+        cwd=machine.work,
+        capture_output=True,
+        timeout=60,
+    )
+    assert result.returncode == 0
+    assert b"Traceback" not in result.stdout + result.stderr
+    assert result.stdout.strip() == b"[main] 5h 12% 7d -"
+    assert last_session(folder)["folder"] == str(folder)
+
+
 def test_statusline_is_quick(machine):
     """Claude Code runs it on every refresh. The budget is generous; it catches accidental heavy work."""
     started = time.perf_counter()

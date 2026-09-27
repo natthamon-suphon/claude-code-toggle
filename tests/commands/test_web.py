@@ -99,6 +99,25 @@ def test_status_api_skips_damaged_session_files(dashboard, work):
     assert [s["session"] for s in json.loads(body)["sessions"]] == ["good-ses"]
 
 
+def test_status_api_is_strict_json_with_damaged_usage_file(dashboard):
+    """Python writes NaN and Infinity into JSON; the browser's JSON.parse rejects them."""
+    paths.usage_dir().mkdir(parents=True)
+    (paths.usage_dir() / "main.json").write_text(
+        '{"updated_at": NaN, "five_hour": {"pct": Infinity}, "seven_day": {"pct": 1, "resets_at": -Infinity}}',
+        encoding="utf-8",
+    )
+    resp, body = get(dashboard, "/api/status")
+    assert resp.status == 200
+
+    def refuse(constant):
+        raise AssertionError(f"not valid JSON for a browser: {constant}")
+
+    main = json.loads(body, parse_constant=refuse)["accounts"][0]
+    assert main["updated_at"] is None
+    assert main["five_hour"] == {"state": "unknown"}
+    assert main["seven_day"] == {"state": "ok", "pct": 1, "resets_at": None}
+
+
 def test_query_string_is_ignored(dashboard):
     assert get(dashboard, "/api/status?t=123")[0].status == 200
 

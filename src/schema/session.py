@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TypedDict
 
-from cct.schema.common import is_number
+from cct.schema.common import is_timestamp
 
 
 class Session(TypedDict):
@@ -26,5 +26,5 @@ def valid_session(raw) -> Session | None:
         "folder": folder if isinstance(folder, str) else "",
         "session_id": raw["session_id"],
         "account": account if isinstance(account, str) else "",
-        "updated_at": updated_at if is_number(updated_at) else 0.0,
+        "updated_at": updated_at if is_timestamp(updated_at) else 0.0,
     }

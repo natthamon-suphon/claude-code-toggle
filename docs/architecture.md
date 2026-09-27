@@ -13,7 +13,7 @@ evidence, not proven; **[unknown]** = must be tested (see [real-machine-testing.
 | Moving a session | **Fast resume**: exit Claude Code, then `claude --resume <session-id>` on the other account. | The alternative, swapping credentials under a running Claude Code, needs a tool to read and write OAuth tokens. That is fragile and against the hard rules. |
 | Usage numbers | From the statusline JSON that Claude Code gives to statusline scripts. | An official channel. No tokens, no network. |
 | Auto-switching | Not built, on purpose. | A human confirms every switch. |
-| Dashboard | Terminal table (`cct status`) and a local web page (`cct web`). | Both were requested; the page is read-only and loopback-only. |
+| Dashboard | Terminal table (`cct status`) and a local web page (`cct web`). | The table for a quick look, the page for one that refreshes itself. The page is read-only and loopback-only. |
 | Runtime | Python 3.9+, standard library only. Distributed as a package and as a single-file zipapp. | Runs the same on macOS and Windows with nothing else to install. |
 
 ## Layers
@@ -132,6 +132,7 @@ All writes are atomic (write a temp file, then `os.replace`, retried on Windows 
 | F14 | The first message after switching accounts may use more usage, because the prompt cache starts empty. | [inferred] |
 | F15 | The statusline process inherits Claude Code's environment, so `CCT_ACCOUNT` reaches it. | [verified] in the sense that `CLAUDECODE` is set for it (env-vars docs) · [inferred] for `CCT_ACCOUNT`, Q2 |
 | F16 | `claude auth status` exists and shows the signed-in account. | [verified] `claude auth --help` (2.1.283) |
+| F17 | Claude Code sends the statusline JSON as UTF-8 and reads the script's output as UTF-8. On Windows, Python decodes pipes with the local code page (cp1252, cp874, ...) unless UTF-8 mode is on, so `cct statusline` reads and writes bytes. | [inferred], Q5 · the crash with another code page is reproduced in the tests with `PYTHONIOENCODING` |
 
 Claude Code issues referenced: [#10063](https://github.com/anthropics/claude-code/issues/10063),
 [#33430](https://github.com/anthropics/claude-code/issues/33430),
