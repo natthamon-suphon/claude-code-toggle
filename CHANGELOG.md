@@ -6,7 +6,9 @@ All notable changes to this project are listed here. The format follows
 
 ## [Unreleased]
 
-First public version, planned as 0.1.0. Before this, cct was a single file, `cct.py`.
+## [0.1.0] - 2026-09-27
+
+First public version. Before this, cct was a single file, `cct.py`.
 
 ### Added
 
@@ -37,3 +39,6 @@ First public version, planned as 0.1.0. Before this, cct was a single file, `cct
   `prev_statusline`, and a non-text `dir` or a name with a trailing newline in `config.json`.
 - `cct install-statusline` no longer loses your previous statusline command when a later `settings.json` is
   invalid JSON.
+
+[Unreleased]: https://github.com/natthamon-suphon/claude-code-toggle/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/natthamon-suphon/claude-code-toggle/releases/tag/v0.1.0
