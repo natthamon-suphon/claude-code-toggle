@@ -75,21 +75,27 @@ Counts Claude Code on this computer only. claude.ai and your other computers are
 pipx install git+https://github.com/natthamon-suphon/claude-code-toggle
 ```
 
-**Option B: one file, nothing to install.** Build `cct.pyz` from a clone, then run it with any Python 3.9+:
+**Option B: one file, nothing to install.** Download `cct.pyz` from the
+[latest release](https://github.com/natthamon-suphon/claude-code-toggle/releases/latest) and run it with any
+Python 3.9+:
 
 ```bash
-git clone https://github.com/natthamon-suphon/claude-code-toggle
-cd claude-code-toggle
-python3 scripts/build_zipapp.py            # writes dist/cct.pyz
-mkdir -p ~/.cct && cp dist/cct.pyz ~/.cct/
+mkdir -p ~/.cct
+curl -L -o ~/.cct/cct.pyz https://github.com/natthamon-suphon/claude-code-toggle/releases/latest/download/cct.pyz
 echo "alias cct='python3 ~/.cct/cct.pyz'" >> ~/.zshrc   # or ~/.bashrc
 ```
 
-On Windows (PowerShell), copy `cct.pyz` to `$HOME\.cct\`, run `notepad $PROFILE`, and add:
+On Windows (PowerShell):
 
 ```powershell
-function cct { py -3 "$HOME\.cct\cct.pyz" @args }
+New-Item -ItemType Directory -Force "$HOME\.cct" | Out-Null
+Invoke-WebRequest https://github.com/natthamon-suphon/claude-code-toggle/releases/latest/download/cct.pyz -OutFile "$HOME\.cct\cct.pyz"
+notepad $PROFILE    # add this line, then open a new PowerShell:
+# function cct { py -3 "$HOME\.cct\cct.pyz" @args }
 ```
+
+Each release lists the SHA-256 of `cct.pyz` if you want to check the download. To build it yourself instead, run
+`python3 scripts/build_zipapp.py` in a clone; it writes `dist/cct.pyz`.
 
 **Option C: pip.** `pip install git+https://github.com/natthamon-suphon/claude-code-toggle` into a virtual
 environment you keep. The statusline runs cct with that environment's Python, so don't delete it.
