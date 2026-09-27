@@ -6,4 +6,4 @@ Usage numbers come from the statusline data that Claude Code itself passes to
 statusline scripts. This tool never reads, copies or sends OAuth tokens.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

@@ -6,6 +6,8 @@ All notable changes to this project are listed here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-27
+
 ### Fixed
 
 - `cct statusline` no longer crashes when Python's pipe encoding is not UTF-8, which is the default on Windows
@@ -50,5 +52,6 @@ First public version. Before this, cct was a single file, `cct.py`.
 - `cct install-statusline` no longer loses your previous statusline command when a later `settings.json` is
   invalid JSON.
 
-[Unreleased]: https://github.com/natthamon-suphon/claude-code-toggle/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/natthamon-suphon/claude-code-toggle/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/natthamon-suphon/claude-code-toggle/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/natthamon-suphon/claude-code-toggle/releases/tag/v0.1.0

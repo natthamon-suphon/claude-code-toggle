@@ -218,7 +218,7 @@ cct is provided "as is", without warranty (see the [license](LICENSE)).
 
 ## Project status
 
-Version 0.1.0, alpha. CI runs the full test suite on Linux, macOS and Windows with Python 3.9 to 3.13, using a
+Version 0.1.1, alpha. CI runs the full test suite on Linux, macOS and Windows with Python 3.9 to 3.13, using a
 fake `claude`. Some behavior still needs checking against a real Claude Code install, mostly on Windows. The
 list is in [docs/real-machine-testing.md](docs/real-machine-testing.md). Results from your machine are welcome:
 please open an issue.
