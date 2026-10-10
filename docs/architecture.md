@@ -118,15 +118,15 @@ All writes are atomic (write a temp file, then `os.replace`, retried on Windows 
 |---|---|---|
 | F1 | `CLAUDE_CONFIG_DIR` makes Claude Code use another config folder. Project and local settings can't set it. | [verified] https://code.claude.com/docs/en/env-vars · https://github.com/anthropics/claude-code/issues/33430 |
 | F2 | Leave `CLAUDE_CONFIG_DIR` unset for the default profile. With it set, the global config moves from `$HOME/.claude.json` to `$CLAUDE_CONFIG_DIR/.claude.json`, and on macOS the Keychain service name changes, so `CLAUDE_CONFIG_DIR=~/.claude` can look logged out. | [inferred] from claude-swap source comments |
-| F3 | Each `CLAUDE_CONFIG_DIR` has its own login (on macOS, its own Keychain item). | [inferred], Q3 |
+| F3 | Each `CLAUDE_CONFIG_DIR` has its own login (on macOS, its own Keychain item). | [verified] macOS, Claude Code 2.1.296, Q3 · [inferred] for the Keychain item |
 | F4 | The statusline JSON has `rate_limits.five_hour` and `rate_limits.seven_day`, each with `used_percentage` and `resets_at`. | [verified] https://code.claude.com/docs/en/statusline |
-| F5 | `rate_limits` is sent only to Pro/Max subscribers, and only after the first API response of a session. | [verified] community statusline projects, e.g. https://github.com/Max2535/claude-code-statusline |
+| F5 | `rate_limits` is sent to Pro/Max subscribers, and only after the first API response of a session. A Team plan sent it too. | [verified] community statusline projects, e.g. https://github.com/Max2535/claude-code-statusline · [verified] for Team, Claude Code 2.1.296, Q1 |
 | F6 | `rate_limits` has been missing in some versions. | [verified] issues #40094, #45133, #95918 |
 | F7 | `resets_at` has been seen as Unix seconds and as ISO-8601 text. cct accepts both, and milliseconds. | [verified] issues #45133 (seconds), #40094 (ISO) |
 | F8 | The statusline JSON also has `session_id`, `transcript_path`, `cwd` and `workspace`. cct prefers `workspace.project_dir`. | [verified] key list in #40094 · [inferred] for `project_dir` |
 | F9 | `claude --resume <id>` resumes a session by ID; `claude -c/--continue` resumes the most recent one. | [verified] `claude --help` (2.1.283) |
 | F10 | `--continue` finds "most recent" through per-config-folder history, so cct always uses `--resume <id>`. | [inferred] issue #10063 |
-| F11 | With `projects/` shared, another account can `--resume` the same session. | [inferred], Q4 |
+| F11 | With `projects/` shared, another account can `--resume` the same session. | [verified] macOS, Claude Code 2.1.296, Q4 |
 | F12 | If `ANTHROPIC_API_KEY` is set, Claude Code uses it instead of the subscription. | [verified] https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan |
 | F13 | Usage limits are a 5-hour window plus a weekly window, shared by claude.ai, Claude Code and Claude Desktop. | [verified] https://support.claude.com/en/articles/11647753-how-do-usage-and-length-limits-work |
 | F14 | The first message after switching accounts may use more usage, because the prompt cache starts empty. | [inferred] |

@@ -48,14 +48,15 @@ Counts Claude Code on this computer only. claude.ai and your other computers are
 ## How it works
 
 1. **One config folder per account.** `CLAUDE_CONFIG_DIR` tells Claude Code which config folder to use
-   ([docs](https://code.claude.com/docs/en/env-vars)). cct relies on each folder keeping its own login (not yet
-   confirmed on a real machine: [Q3](docs/real-machine-testing.md)). cct gives each extra account its own folder,
-   `~/.claude-NAME`. Your first account keeps using `~/.claude`.
+   ([docs](https://code.claude.com/docs/en/env-vars)). Each folder keeps its own login (tested on macOS:
+   [Q3](docs/real-machine-testing.md)). cct gives each extra account its own folder, `~/.claude-NAME`. Your first
+   account keeps using `~/.claude`.
 2. **Shared work.** Inside each extra folder, cct links sessions, settings, `CLAUDE.md`, skills, commands,
    agents and rules back to `~/.claude`. Every account sees the same sessions and setup.
 3. **Usage from the statusline.** Claude Code sends JSON to statusline scripts, including `rate_limits` for
-   Pro and Max plans ([docs](https://code.claude.com/docs/en/statusline)). `cct install-statusline` makes cct
-   your statusline. Each time it runs, it saves the usage numbers and the current session ID.
+   Pro and Max plans ([docs](https://code.claude.com/docs/en/statusline)). A Team plan sent them too in our test.
+   `cct install-statusline` makes cct your statusline. Each time it runs, it saves the usage numbers and the
+   current session ID.
 4. **Moving a session.** When you leave Claude Code, cct asks if you want to continue on another account. If you
    say yes, it starts `claude --resume <session-id>` on that account. It is the same conversation, just a
    different login.

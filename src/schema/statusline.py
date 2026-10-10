@@ -1,8 +1,8 @@
 """The JSON that Claude Code sends to statusline scripts on stdin. Only the fields cct reads.
 
-Reference: https://code.claude.com/docs/en/statusline. `rate_limits` is only sent to Pro and Max
-subscribers, only after the first API response of a session, and has been missing in some
-Claude Code versions, so every field is optional.
+Reference: https://code.claude.com/docs/en/statusline. `rate_limits` is sent to Pro and Max
+subscribers (a Team plan too, in a real-machine test), only after the first API response of a
+session, and has been missing in some Claude Code versions, so every field is optional.
 """
 
 from __future__ import annotations
