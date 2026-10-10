@@ -15,7 +15,19 @@ from cct.schema.config import Account, Config, is_valid_name
 from cct.utils import system
 from cct.utils.fs import is_link, same_file
 
-SHARED_ITEMS = ("projects", "settings.json", "CLAUDE.md", "skills", "commands", "agents")
+# CLAUDE.md can import RTK.md with `@RTK.md`, which resolves next to the profile's CLAUDE.md link.
+# all-about-agents/ holds that package's statusline settings.
+SHARED_ITEMS = (
+    "projects",
+    "settings.json",
+    "CLAUDE.md",
+    "skills",
+    "commands",
+    "agents",
+    "rules",
+    "RTK.md",
+    "all-about-agents",
+)
 
 
 def link_item(src: Path, dst: Path) -> str:

@@ -51,8 +51,8 @@ Counts Claude Code on this computer only. claude.ai and your other computers are
    ([docs](https://code.claude.com/docs/en/env-vars)). cct relies on each folder keeping its own login (not yet
    confirmed on a real machine: [Q3](docs/real-machine-testing.md)). cct gives each extra account its own folder,
    `~/.claude-NAME`. Your first account keeps using `~/.claude`.
-2. **Shared work.** Inside each extra folder, cct links sessions, settings, `CLAUDE.md`, skills, commands and
-   agents back to `~/.claude`. Every account sees the same sessions and setup.
+2. **Shared work.** Inside each extra folder, cct links sessions, settings, `CLAUDE.md`, skills, commands,
+   agents and rules back to `~/.claude`. Every account sees the same sessions and setup.
 3. **Usage from the statusline.** Claude Code sends JSON to statusline scripts, including `rate_limits` for
    Pro and Max plans ([docs](https://code.claude.com/docs/en/statusline)). `cct install-statusline` makes cct
    your statusline. Each time it runs, it saves the usage numbers and the current session ID.
@@ -159,11 +159,12 @@ Exit codes: `0` success, `1` a problem you can fix (the message says what), `2` 
 
 | Shared (linked to `~/.claude`) | Separate for each account |
 |---|---|
-| `projects/` (sessions), `settings.json`, `CLAUDE.md`, `skills/`, `commands/`, `agents/` | The login, and everything else Claude Code keeps in the config folder |
+| `projects/` (sessions), `settings.json`, `CLAUDE.md`, `skills/`, `commands/`, `agents/`, `rules/`, and two companion items when you have them: `RTK.md` (imported by `CLAUDE.md`) and `all-about-agents/` (statusline settings) | The login, and everything else Claude Code keeps in the config folder |
 
 cct only links an item that exists in `~/.claude` (it always creates `projects/`, because sessions must be
 shared). It never replaces a file or folder that is already there: it prints `SKIPPED` and leaves it alone.
-`cct list` tells you what is not shared yet.
+`cct list` tells you what is not shared yet. After you upgrade cct, run `cct link NAME` to add new shared items
+to an account you made earlier.
 
 ## Files cct writes
 

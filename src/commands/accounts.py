@@ -12,7 +12,7 @@ def cmd_add(cfg: Config, name: str, folder: str | None) -> int:
     target = create_profile_dir(cfg, name, folder)
     print(f"Profile folder: {target}")
     for item, result in link_shared(target):
-        print(f"  {item:<14} {result}")
+        print(f"  {item:<16} {result}")
     register_profile(cfg, name, target)
     print(f"\nNext: run `cct run {name}` and type /login with that account.")
     return 0
@@ -23,7 +23,7 @@ def cmd_link(cfg: Config, name: str) -> int:
     if not acc.get("dir"):
         raise CctError("The default account uses ~/.claude itself; nothing to link.")
     for item, result in link_shared(config_home(acc)):
-        print(f"  {item:<14} {result}")
+        print(f"  {item:<16} {result}")
     return 0
 
 

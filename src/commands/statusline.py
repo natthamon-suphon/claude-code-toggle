@@ -99,7 +99,8 @@ def cmd_install_statusline(cfg: Config) -> int:
                 print(f"keeping your old statusline, shown under cct's line: {cur_cmd}")
         if path.exists():
             print(f"backup: {backup_file(path)}")
-        settings["statusLine"] = {"type": "command", "command": ours}
+        kept = current if isinstance(current, dict) else {}
+        settings["statusLine"] = {**kept, "type": "command", "command": ours}
         write_json(path, settings)
         print(f"installed: {path}")
     save_config(cfg)

@@ -178,7 +178,23 @@ def test_link_shared_reports_every_item_in_order(claude_home, tmp_path):
         "skills": "linked",
         "commands": "skipped: not in ~/.claude",
         "agents": "skipped: not in ~/.claude",
+        "rules": "skipped: not in ~/.claude",
+        "RTK.md": "skipped: not in ~/.claude",
+        "all-about-agents": "skipped: not in ~/.claude",
     }
+
+
+@needs_symlinks
+def test_link_shared_links_rules_and_their_companion_files(claude_home, tmp_path):
+    (claude_home / "rules").mkdir()
+    (claude_home / "RTK.md").write_text("# rtk\n", encoding="utf-8")
+    (claude_home / "all-about-agents").mkdir()
+    profile = tmp_path / "profile"
+    profile.mkdir()
+    results = dict(link_shared(profile))
+    for item in ("rules", "RTK.md", "all-about-agents"):
+        assert results[item] == "linked"
+        assert same_file(profile / item, claude_home / item)
 
 
 @needs_symlinks

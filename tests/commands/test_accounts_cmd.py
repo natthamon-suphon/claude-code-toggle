@@ -14,9 +14,10 @@ def test_add_creates_profile_links_items_and_saves(home, cfg, capsys):
     assert cmd_add(cfg, "acc2", None) == 0
     out = capsys.readouterr().out
     assert f"Profile folder: {home / '.claude-acc2'}" in out
-    assert "  projects       linked" in out
-    assert "  settings.json  linked" in out
-    assert "  commands       skipped: not in ~/.claude" in out
+    assert "  projects         linked" in out
+    assert "  settings.json    linked" in out
+    assert "  commands         skipped: not in ~/.claude" in out
+    assert "  all-about-agents skipped: not in ~/.claude" in out
     assert "Next: run `cct run acc2` and type /login with that account." in out
     assert is_link(home / ".claude-acc2" / "projects")
     assert load_config()["accounts"][-1] == {"name": "acc2", "dir": str(home / ".claude-acc2")}
@@ -30,8 +31,8 @@ def test_add_adopting_a_folder_keeps_its_own_files(home, cfg, capsys):
     os.symlink(home / ".claude" / "projects", old / "projects", target_is_directory=True)
     cmd_add(cfg, "old", str(old))
     out = capsys.readouterr().out
-    assert "  projects       already linked" in out
-    assert "  settings.json  SKIPPED: already exists here" in out
+    assert "  projects         already linked" in out
+    assert "  settings.json    SKIPPED: already exists here" in out
     assert (old / "settings.json").read_text(encoding="utf-8") == '{"mine": 1}'
 
 
@@ -59,8 +60,8 @@ def test_link_restores_a_missing_link(home, three_accounts, capsys):
     capsys.readouterr()
     cmd_link(three_accounts, "acc2")
     out = capsys.readouterr().out
-    assert "  CLAUDE.md      linked" in out
-    assert "  projects       already linked" in out
+    assert "  CLAUDE.md        linked" in out
+    assert "  projects         already linked" in out
 
 
 @needs_symlinks

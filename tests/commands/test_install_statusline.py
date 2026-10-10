@@ -50,6 +50,19 @@ def test_install_keeps_users_statusline_as_previous(claude_home, cfg, capsys):
     assert read_json(claude_home / "settings.json")["statusLine"]["command"] == statusline_command()
 
 
+def test_install_keeps_other_statusline_keys(claude_home, cfg):
+    settings_path = claude_home / "settings.json"
+    data = read_json(settings_path)
+    data["statusLine"] = {"type": "command", "command": "bash ~/my-status.sh", "padding": 0}
+    write_json(settings_path, data)
+    cmd_install_statusline(cfg)
+    assert read_json(settings_path)["statusLine"] == {
+        "type": "command",
+        "command": statusline_command(),
+        "padding": 0,
+    }
+
+
 @pytest.mark.parametrize(
     "old", ["python3 /Users/u/.cct/cct.py statusline", "/usr/bin/python3 /old/place/cct/__main__.py statusline"]
 )

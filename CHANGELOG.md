@@ -6,6 +6,15 @@ All notable changes to this project are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `cct add` and `cct link` now also share `rules/` (your user-level Claude Code rules), and `RTK.md` and
+  `all-about-agents/` when they exist in `~/.claude`. For an account you added earlier, run `cct link NAME`.
+
+### Fixed
+
+- `cct install-statusline` no longer drops other `statusLine` keys, such as `padding`.
+
 ## [0.1.1] - 2026-09-27
 
 ### Fixed
