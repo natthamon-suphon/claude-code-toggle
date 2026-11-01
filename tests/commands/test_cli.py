@@ -20,8 +20,8 @@ def calls(monkeypatch):
         (accounts, "cmd_add"),
         (accounts, "cmd_list"),
         (accounts, "cmd_link"),
-        (run, "cmd_run"),
-        (run, "cmd_next"),
+        (run, "cmd_start"),
+        (run, "cmd_resume"),
         (status, "cmd_status"),
         (web, "cmd_web"),
         (statusline, "cmd_install_statusline"),
@@ -38,14 +38,14 @@ def calls(monkeypatch):
         (["add", "acc2", "--dir", "~/x"], ("cmd_add", ("acc2", "~/x"), {})),
         (["list"], ("cmd_list", (), {})),
         (["link", "acc2"], ("cmd_link", ("acc2",), {})),
-        (["run"], ("cmd_run", (None, []), {"ask": True})),
-        (["run", "acc2", "--no-ask"], ("cmd_run", ("acc2", []), {"ask": False})),
+        (["start"], ("cmd_start", (None, []), {"ask": True})),
+        (["start", "acc2", "--no-ask"], ("cmd_start", ("acc2", []), {"ask": False})),
         (
-            ["run", "acc2", "--", "--model", "x", "--", "y"],
-            ("cmd_run", ("acc2", ["--model", "x", "--", "y"]), {"ask": True}),
+            ["start", "acc2", "--", "--model", "x", "--", "y"],
+            ("cmd_start", ("acc2", ["--model", "x", "--", "y"]), {"ask": True}),
         ),
-        (["next"], ("cmd_next", (None,), {})),
-        (["next", "acc3"], ("cmd_next", ("acc3",), {})),
+        (["resume"], ("cmd_resume", (None,), {})),
+        (["resume", "acc3"], ("cmd_resume", ("acc3",), {})),
         (["status"], ("cmd_status", (), {})),
         (["web"], ("cmd_web", (8765, True), {})),
         (["web", "--port", "9000", "--no-open"], ("cmd_web", (9000, False), {})),
@@ -79,11 +79,20 @@ def test_bad_usage_exits_2(argv, capsys):
     assert exit_info.value.code == 2
 
 
-def test_extra_args_only_for_run(capsys):
+@pytest.mark.parametrize("old_name", ["run", "next"])
+def test_old_command_names_are_gone(capsys, old_name):
+    """`cct run` became `cct start`, and `cct next` became `cct resume`."""
+    with pytest.raises(SystemExit) as exit_info:
+        cli.main([old_name])
+    assert exit_info.value.code == 2
+    assert "invalid choice" in capsys.readouterr().err
+
+
+def test_extra_args_only_for_start(capsys):
     with pytest.raises(SystemExit) as exit_info:
         cli.main(["list", "--", "x"])
     assert exit_info.value.code == 2
-    assert "arguments after -- only work with `cct run`" in capsys.readouterr().err
+    assert "arguments after -- only work with `cct start`" in capsys.readouterr().err
 
 
 def test_user_errors_exit_1_with_a_message(capsys):

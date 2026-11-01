@@ -14,7 +14,7 @@ def cmd_add(cfg: Config, name: str, folder: str | None) -> int:
     for item, result in link_shared(target):
         print(f"  {item:<16} {result}")
     register_profile(cfg, name, target)
-    print(f"\nNext: run `cct run {name}` and type /login with that account.")
+    print(f"\nNext: run `cct start {name}` and type /login with that account.")
     return 0
 
 

@@ -28,7 +28,7 @@ config.py, paths.py, errors.py: shared by every layer
 |---|---|
 | `cli.py` | Parses arguments and calls one command. `cct statusline` is handled before argparse to keep it fast. |
 | `commands/accounts.py` | `add`, `link`, `list` |
-| `commands/run.py` | `run`, `next`, and the exit prompt |
+| `commands/run.py` | `start`, `resume`, and the exit prompt |
 | `commands/status.py` | `status` (terminal table) |
 | `commands/statusline.py` | `statusline` (the hook) and `install-statusline` |
 | `commands/web.py` | `web` |
@@ -56,7 +56,7 @@ Claude Code ──stdin JSON──▶ cct statusline ──▶ ~/.cct/usage/<acc
    (every refresh)              │           └─▶ ~/.cct/sessions/<key>.json
                                 └──stdout──▶ "[acc2] 5h 40% 7d 13%" (+ your old statusline)
 
-cct run NAME ──env──▶ claude ... (exit) ──▶ session updated here? ──▶ ask ──▶ claude --resume <id> as next account
+cct start NAME ──env──▶ claude ... (exit) ──▶ session updated here? ──▶ ask ──▶ claude --resume <id> as next account
 cct status / cct web ◀── reads ~/.cct/usage and ~/.cct/sessions
 ```
 

@@ -117,4 +117,4 @@ def test_status_survives_numbers_json_allows_but_python_cannot_use(work, three_a
 def test_status_mentions_last_session_in_this_folder(work, usage, monkeypatch):
     save_session(str(work), "s", "acc2", time.time())
     out = run_status(usage, monkeypatch, tty=False)
-    assert "Last session in this folder ran on 'acc2'. Move it to another account: cct next" in out
+    assert "Last session in this folder ran on 'acc2'. Move it to another account: cct resume" in out

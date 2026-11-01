@@ -116,7 +116,7 @@ Your current login in `~/.claude` becomes the first account, `main`.
 
 ```bash
 cct add work              # creates ~/.claude-work and links the shared items
-cct run work              # starts Claude Code as "work"; type /login and sign in with that account
+cct start work            # starts Claude Code as "work"; type /login and sign in with that account
 cct install-statusline    # once per computer
 ```
 
@@ -132,7 +132,7 @@ move cct or upgrade Python).
 
 ```bash
 cd my-project
-cct run                   # start Claude Code as the first account (or: cct run work)
+cct start                 # start Claude Code as the first account (or: cct start work)
 ```
 
 When you want to continue on another account:
@@ -142,7 +142,7 @@ When you want to continue on another account:
    `Resume this session on 'work' (5h 24%, 7d 15%)? [y / N / account name]`.
 3. Answer `y`, or type an account name. The same session opens on that account.
 
-You can also do this later, from the same folder: `cct next` (the next account in the list) or `cct next work`.
+You can also do this later, from the same folder: `cct resume` (the next account in the list) or `cct resume work`.
 Close the old Claude Code window first, so two accounts don't write to the same session.
 
 ## Commands
@@ -152,15 +152,15 @@ Close the old Claude Code window first, so two accounts don't write to the same 
 | `cct add NAME [--dir PATH]` | Create `~/.claude-NAME` (or adopt `PATH`) and link the shared items. It never overwrites a file. |
 | `cct list` | Show accounts, their folders, and whether all shared items are linked. |
 | `cct link NAME` | Create missing links again for one account. |
-| `cct run [NAME] [--no-ask] [-- ARGS]` | Start Claude Code as an account. Anything after `--` goes to `claude`. When Claude Code exits, cct offers to move the session (only in an interactive terminal). |
-| `cct next [NAME]` | Resume this folder's last session on the next account, or on `NAME`. |
+| `cct start [NAME] [--no-ask] [-- ARGS]` | Start Claude Code as an account. Anything after `--` goes to `claude`. When Claude Code exits, cct offers to move the session (only in an interactive terminal). |
+| `cct resume [NAME]` | Resume this folder's last session on the next account, or on `NAME`. |
 | `cct status` | Usage table: 5-hour and weekly windows, reset times, when each account was last seen. |
 | `cct web [--port 8765] [--no-open]` | The same data as a web page on `http://127.0.0.1:8765`, for this computer only. |
 | `cct install-statusline` | Make cct the statusline in every account's `settings.json`. |
 | `cct --version` | Print the version. |
 
 Exit codes: `0` success, `1` a problem you can fix (the message says what), `2` wrong command-line usage.
-`cct run` returns Claude Code's own exit code.
+`cct start` returns Claude Code's own exit code.
 
 ## What is shared between accounts
 
@@ -194,7 +194,7 @@ Set `CCT_HOME` to keep cct's own files somewhere other than `~/.cct`. cct stores
 - `cct web` listens on `127.0.0.1` only, so other devices can't reach it. It refuses requests whose `Host`
   header isn't `127.0.0.1` or `localhost` (this blocks DNS rebinding). It is read-only and sends a strict
   Content Security Policy.
-- If `ANTHROPIC_API_KEY` is set, Claude Code may use that key instead of your subscription. `cct run` warns you.
+- If `ANTHROPIC_API_KEY` is set, Claude Code may use that key instead of your subscription. `cct start` warns you.
 
 To report a security problem, see [SECURITY.md](SECURITY.md).
 

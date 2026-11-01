@@ -17,7 +17,7 @@ class Account(TypedDict):
 
 
 class Config(TypedDict):
-    accounts: list[Account]  # the first one is the default for `cct run`
+    accounts: list[Account]  # the first one is the default for `cct start`
     prev_statusline: str | None  # shown under cct's own statusline
 
 

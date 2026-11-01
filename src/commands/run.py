@@ -1,4 +1,4 @@
-"""cct run, cct next."""
+"""cct start, cct resume."""
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ def ask_switch(cfg: Config, acc: Account):
     return None
 
 
-def cmd_run(cfg: Config, name: str | None, args: list, ask: bool = True) -> int:
+def cmd_start(cfg: Config, name: str | None, args: list, ask: bool = True) -> int:
     acc = get_account(cfg, name) if name else cfg["accounts"][0]
     while True:
         print(f"cct: starting Claude Code as '{acc['name']}'")
@@ -75,12 +75,12 @@ def cmd_run(cfg: Config, name: str | None, args: list, ask: bool = True) -> int:
         acc, args = target, ["--resume", sess["session_id"]]
 
 
-def cmd_next(cfg: Config, name: str | None) -> int:
+def cmd_resume(cfg: Config, name: str | None) -> int:
     sess = last_session(Path.cwd())
     if not sess or not sess.get("session_id"):
         raise CctError(
             "No session recorded for this folder yet. Start Claude here with "
-            "`cct run`, and run `cct install-statusline` once per computer."
+            "`cct start`, and run `cct install-statusline` once per computer."
         )
     current = sess.get("account", "")
     target = get_account(cfg, name) if name else next_account(cfg, current)
@@ -91,4 +91,4 @@ def cmd_next(cfg: Config, name: str | None) -> int:
         f"(last active {fmt_ago(sess.get('updated_at'))}) on '{target['name']}'."
     )
     print("cct: close the old Claude window first (/exit), so two accounts don't write to the same session.")
-    return cmd_run(cfg, target["name"], ["--resume", sess["session_id"]])
+    return cmd_start(cfg, target["name"], ["--resume", sess["session_id"]])

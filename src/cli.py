@@ -18,10 +18,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--dir", help="existing folder to adopt (default: ~/.claude-NAME)")
     sub.add_parser("list", help="accounts, folders and link health")
     sub.add_parser("link", help="re-create missing shared links").add_argument("name")
-    p = sub.add_parser("run", help="start Claude Code as an account; extra args after --")
+    p = sub.add_parser("start", help="start Claude Code as an account; extra args after --")
     p.add_argument("name", nargs="?")
     p.add_argument("--no-ask", action="store_true", help="don't offer to switch when Claude exits")
-    sub.add_parser("next", help="resume this folder's last session on another account").add_argument("name", nargs="?")
+    sub.add_parser("resume", help="resume this folder's last session on another account").add_argument(
+        "name", nargs="?"
+    )
     sub.add_parser("status", help="usage table")
     p = sub.add_parser("web", help="usage page on 127.0.0.1")
     p.add_argument("--port", type=int, default=8765)
@@ -44,8 +46,8 @@ def main(argv=None) -> int:
 
     parser = build_parser()
     args = parser.parse_args(argv)
-    if extra and args.cmd != "run":
-        parser.error("arguments after -- only work with `cct run`")
+    if extra and args.cmd != "start":
+        parser.error("arguments after -- only work with `cct start`")
 
     # Imported here so `cct statusline` and `cct --help` stay fast.
     from cct.commands import accounts, run, status, statusline, web
@@ -59,10 +61,10 @@ def main(argv=None) -> int:
             return accounts.cmd_list(cfg)
         if args.cmd == "link":
             return accounts.cmd_link(cfg, args.name)
-        if args.cmd == "run":
-            return run.cmd_run(cfg, args.name, extra, ask=not args.no_ask)
-        if args.cmd == "next":
-            return run.cmd_next(cfg, args.name)
+        if args.cmd == "start":
+            return run.cmd_start(cfg, args.name, extra, ask=not args.no_ask)
+        if args.cmd == "resume":
+            return run.cmd_resume(cfg, args.name)
         if args.cmd == "status":
             return status.cmd_status(cfg)
         if args.cmd == "web":

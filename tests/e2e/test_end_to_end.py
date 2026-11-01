@@ -77,14 +77,14 @@ def test_full_day(machine):
     if SYMLINKS:
         assert lines[1].endswith("all shared") and lines[2].endswith("all shared")
 
-    ran = machine.cct("run")
+    ran = machine.cct("start")
     assert ran.returncode == 0, ran.stderr
     assert "STATUSLINE> [main] 5h 97% 7d 32%" in ran.stdout
     first = machine.starts()[0]
     assert first["CCT_ACCOUNT"] == "main"
     assert first["CLAUDE_CONFIG_DIR"] is None  # the default account never sets it
 
-    moved = machine.cct("next")
+    moved = machine.cct("resume")
     assert moved.returncode == 0, moved.stderr
     assert "STATUSLINE> [acc2] 5h 40% 7d 13%" in moved.stdout
     second = machine.starts()[1]
@@ -102,8 +102,8 @@ def test_full_day(machine):
 
 def test_next_resumes_the_exact_session(machine):
     machine.cct("add", "acc2")
-    machine.cct("run")
-    machine.cct("next")
+    machine.cct("start")
+    machine.cct("resume")
     first, second = machine.starts()
     session_file = next((machine.home / ".cct" / "sessions").glob("*.json"))
     assert second["args"] == ["--resume", json.loads(session_file.read_text(encoding="utf-8"))["session_id"]]
@@ -111,7 +111,7 @@ def test_next_resumes_the_exact_session(machine):
 
 
 def test_run_passes_args_and_exit_code(machine):
-    result = machine.cct("run", "--", "--model", "some-model", FAKE_EXIT="3")
+    result = machine.cct("start", "--", "--model", "some-model", FAKE_EXIT="3")
     assert result.returncode == 3
     assert machine.starts()[0]["args"] == ["--model", "some-model"]
 
@@ -121,13 +121,13 @@ def test_user_error_exit_codes(machine):
     assert missing.returncode == 1
     assert missing.stderr.startswith("cct: No account named 'nobody'")
     assert machine.cct("list", "--", "x").returncode == 2
-    no_session = machine.cct("next")
+    no_session = machine.cct("resume")
     assert no_session.returncode == 1
     assert "No session recorded" in no_session.stderr
 
 
 def test_claude_not_installed(machine):
-    result = machine.cct("run", PATH=str(machine.work))  # a PATH without claude
+    result = machine.cct("start", PATH=str(machine.work))  # a PATH without claude
     assert result.returncode == 1
     assert "Can't find `claude` in PATH" in result.stderr
 
@@ -142,7 +142,7 @@ def test_exit_prompt_moves_session_to_next_account(machine):
     controller, terminal = pty.openpty()
     try:
         os.write(controller, b"y\n\n")  # "y" to move to acc3, then Enter (= no) at the next prompt
-        result = machine.cct("run", "acc2", stdin=terminal)
+        result = machine.cct("start", "acc2", stdin=terminal)
     finally:
         os.close(controller)
         os.close(terminal)

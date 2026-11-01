@@ -18,7 +18,7 @@ def test_add_creates_profile_links_items_and_saves(home, cfg, capsys):
     assert "  settings.json    linked" in out
     assert "  commands         skipped: not in ~/.claude" in out
     assert "  all-about-agents skipped: not in ~/.claude" in out
-    assert "Next: run `cct run acc2` and type /login with that account." in out
+    assert "Next: run `cct start acc2` and type /login with that account." in out
     assert is_link(home / ".claude-acc2" / "projects")
     assert load_config()["accounts"][-1] == {"name": "acc2", "dir": str(home / ".claude-acc2")}
 

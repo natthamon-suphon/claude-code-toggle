@@ -41,5 +41,5 @@ def cmd_status(cfg: Config) -> int:
     print("\nCounts Claude Code on this computer only. claude.ai and your other computers aren't included.")
     here = last_session(Path.cwd())
     if here:
-        print(f"Last session in this folder ran on '{here.get('account')}'. Move it to another account: cct next")
+        print(f"Last session in this folder ran on '{here.get('account')}'. Move it to another account: cct resume")
     return 0

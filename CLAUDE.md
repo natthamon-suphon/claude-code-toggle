@@ -27,7 +27,7 @@ doing any work, explain why, and offer a safe option.
 1. Never read, copy, store, refresh or send OAuth tokens or `.credentials.json`. Never read Keychain items.
 2. Never call `api.anthropic.com/api/oauth/*`, `platform.claude.com/v1/oauth/token`, or any other OAuth endpoint.
    cct makes no network requests at all.
-3. No auto-switching. A human confirms every switch (the `y` prompt, or typing `cct next`). Showing which account
+3. No auto-switching. A human confirms every switch (the `y` prompt, or typing `cct resume`). Showing which account
    has the most room left is fine; acting on it without the user is not.
 4. The only data sources are local files and the statusline JSON on stdin. If Claude Code stops sending
    `rate_limits`, show `-`; never fall back to a usage API.

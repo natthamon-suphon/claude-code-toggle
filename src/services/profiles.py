@@ -39,7 +39,7 @@ def link_item(src: Path, dst: Path) -> str:
     if not src.exists():
         if src.name != "projects":
             return "skipped: not in ~/.claude"
-        src.mkdir(parents=True)  # sessions must be shared, or `cct next` can't resume
+        src.mkdir(parents=True)  # sessions must be shared, or `cct resume` can't find them
     try:
         os.symlink(src, dst, target_is_directory=src.is_dir())
         return "linked"

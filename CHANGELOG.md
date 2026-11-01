@@ -13,6 +13,10 @@ All notable changes to this project are listed here. The format follows
 - Fedora 44: CI now tests cct on Fedora with Fedora's own Python and pipx, and the README has Fedora install steps.
   Python 3.14 is tested on Linux, macOS and Windows.
 
+### Changed
+
+- **Breaking:** `cct run` is now `cct start`, and `cct next` is now `cct resume`. The old names no longer work.
+
 ### Fixed
 
 - `cct install-statusline` no longer drops other `statusLine` keys, such as `padding`.
