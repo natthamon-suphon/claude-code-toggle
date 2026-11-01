@@ -38,6 +38,15 @@ def test_detect_account_matches_config_dir_spelled_differently(monkeypatch, home
     assert sl.detect_account(three_accounts) == "acc3"
 
 
+@needs_symlinks
+def test_detect_account_matches_config_dir_through_a_linked_folder(monkeypatch, home, tmp_path, three_accounts):
+    """Fedora Atomic (Silverblue) links /home to /var/home, so one profile folder has two spellings."""
+    alias = tmp_path / "alias-of-home"
+    alias.symlink_to(home, target_is_directory=True)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(alias / ".claude-acc2"))
+    assert sl.detect_account(three_accounts) == "acc2"
+
+
 def test_detect_account_plain_claude_is_the_default_account(three_accounts):
     assert sl.detect_account(three_accounts) == "main"
 

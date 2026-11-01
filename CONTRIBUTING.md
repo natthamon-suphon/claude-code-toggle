@@ -19,7 +19,8 @@ pip install -e ".[dev]"
 
 ## Checks
 
-Run these before you open a pull request. CI runs the same on Linux, macOS and Windows with Python 3.9 to 3.13.
+Run these before you open a pull request. CI runs the same on Linux, macOS and Windows with Python 3.9 to 3.14,
+and on Fedora 44 with Fedora's own Python.
 
 ```bash
 pytest

@@ -17,7 +17,8 @@ Status: **[unknown]** = not tested yet · **[verified]** = tested, result below 
 | Q7 | Windows links, with and without Developer Mode. | `cct add test`, then `cct list`. Check that the `projects` junction works. | [unknown] |
 | Q8 | When Claude Code saves user settings (for example through `/config`), does it replace a linked `settings.json` with a normal file? | Change a setting inside `cct run work`, then run `cct list`. | [unknown] |
 | Q9 | Windows: do Ctrl+C and Esc inside Claude Code still work under `cct run`, and does the exit prompt show? | Manual test. | [unknown] |
-| Q10 | The statusline command stores the absolute Python path. Does it break when Homebrew Python (or the pipx venv) is upgraded or moved? | After an upgrade, check the status bar. The fix is to run `cct install-statusline` again (it is safe to repeat). | [unknown] |
+| Q10 | The statusline command stores the absolute Python path. Does it break when Homebrew Python (or the pipx venv) is upgraded or moved, or after a Fedora release upgrade brings a new Python? | After an upgrade, check the status bar. The fix is `pipx reinstall-all` (pipx installs only), then `cct install-statusline` (it is safe to repeat). | [unknown] |
+| Q11 | Fedora 44: does the whole flow work? | Install with `pipx`, `cct add work`, then `cct run work` and `/login` with the second account. `claude auth status` in plain `claude` and with `CLAUDE_CONFIG_DIR=~/.claude-work` must show different emails. Then `cct install-statusline` (cct's line shows in Claude Code), `/exit` and answer `y` (the session moves), and `cct web` (the browser opens; use `--no-open` over SSH). Note whether Claude Code came from the native installer or dnf. | [unknown] |
 
 ## Results
 

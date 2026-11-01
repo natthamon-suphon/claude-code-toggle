@@ -68,6 +68,9 @@ Counts Claude Code on this computer only. claude.ai and your other computers are
 - macOS, Linux or Windows. On Windows, turn on **Developer Mode** (Settings → System → For developers) before you
   add accounts. Without it, Windows can't make symlinks, so cct links folders with junctions and copies files
   instead.
+- On Fedora, get Python and pipx with `sudo dnf install python3 pipx`. Claude Code's
+  [setup page](https://code.claude.com/docs/en/setup) installs `claude` with its native installer or from its dnf
+  repository.
 
 ## Install
 
@@ -76,6 +79,9 @@ Counts Claude Code on this computer only. claude.ai and your other computers are
 ```bash
 pipx install git+https://github.com/natthamon-suphon/claude-code-toggle
 ```
+
+A pipx install is tied to one Python version. After an upgrade that changes it (for example a new Fedora
+release), run `pipx reinstall-all`, then `cct install-statusline`.
 
 **Option B: one file, nothing to install.** Download `cct.pyz` from the
 [latest release](https://github.com/natthamon-suphon/claude-code-toggle/releases/latest) and run it with any
@@ -220,8 +226,9 @@ cct is provided "as is", without warranty (see the [license](LICENSE)).
 
 ## Project status
 
-Version 0.1.1, alpha. CI runs the full test suite on Linux, macOS and Windows with Python 3.9 to 3.13, using a
-fake `claude`. Some behavior still needs checking against a real Claude Code install, mostly on Windows. The
+Version 0.1.1, alpha. CI runs the full test suite on Linux, macOS and Windows with Python 3.9 to 3.14, and on
+Fedora 44 with Fedora's own Python, using a fake `claude`. Some behavior still needs checking against a real
+Claude Code install, mostly on Windows and Linux. The
 list is in [docs/real-machine-testing.md](docs/real-machine-testing.md). Results from your machine are welcome:
 please open an issue.
 

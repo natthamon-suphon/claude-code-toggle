@@ -197,6 +197,24 @@ def test_link_shared_links_rules_and_their_companion_files(claude_home, tmp_path
         assert same_file(profile / item, claude_home / item)
 
 
+# The login on Linux and Windows (on macOS too, when the Keychain refuses it), and the global config.
+LOGIN_FILES = (".credentials.json", ".claude.json")
+
+
+def test_login_files_are_never_shared():
+    """Each config folder keeps its own login file. Sharing it would put every account on one login."""
+    assert not set(LOGIN_FILES) & set(SHARED_ITEMS)
+
+
+def test_link_shared_leaves_login_files_alone(claude_home, tmp_path):
+    for name in LOGIN_FILES:
+        (claude_home / name).write_text("{}", encoding="utf-8")  # placeholders, not real data
+    profile = tmp_path / "profile"
+    profile.mkdir()
+    list(link_shared(profile))
+    assert not [name for name in LOGIN_FILES if os.path.lexists(profile / name)]
+
+
 @needs_symlinks
 def test_unshared_items(home, three_accounts):
     acc2 = three_accounts["accounts"][1]

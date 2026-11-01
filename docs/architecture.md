@@ -118,7 +118,7 @@ All writes are atomic (write a temp file, then `os.replace`, retried on Windows 
 |---|---|---|
 | F1 | `CLAUDE_CONFIG_DIR` makes Claude Code use another config folder. Project and local settings can't set it. | [verified] https://code.claude.com/docs/en/env-vars · https://github.com/anthropics/claude-code/issues/33430 |
 | F2 | Leave `CLAUDE_CONFIG_DIR` unset for the default profile. With it set, the global config moves from `$HOME/.claude.json` to `$CLAUDE_CONFIG_DIR/.claude.json`, and on macOS the Keychain service name changes, so `CLAUDE_CONFIG_DIR=~/.claude` can look logged out. | [inferred] from claude-swap source comments |
-| F3 | Each `CLAUDE_CONFIG_DIR` has its own login (on macOS, its own Keychain item). | [verified] macOS, Claude Code 2.1.296, Q3 · [inferred] for the Keychain item |
+| F3 | Each `CLAUDE_CONFIG_DIR` has its own login (on macOS, its own Keychain item; on Linux, its own `.credentials.json`). | [verified] macOS, Claude Code 2.1.296, Q3 · [inferred] for the Keychain item · [verified] for Linux: https://code.claude.com/docs/en/authentication ("Credential management"); real test still open, Q11 |
 | F4 | The statusline JSON has `rate_limits.five_hour` and `rate_limits.seven_day`, each with `used_percentage` and `resets_at`. | [verified] https://code.claude.com/docs/en/statusline |
 | F5 | `rate_limits` is sent to Pro/Max subscribers, and only after the first API response of a session. A Team plan sent it too. | [verified] community statusline projects, e.g. https://github.com/Max2535/claude-code-statusline · [verified] for Team, Claude Code 2.1.296, Q1 |
 | F6 | `rate_limits` has been missing in some versions. | [verified] issues #40094, #45133, #95918 |
@@ -133,6 +133,7 @@ All writes are atomic (write a temp file, then `os.replace`, retried on Windows 
 | F15 | The statusline process inherits Claude Code's environment, so `CCT_ACCOUNT` reaches it. | [verified] in the sense that `CLAUDECODE` is set for it (env-vars docs) · [inferred] for `CCT_ACCOUNT`, Q2 |
 | F16 | `claude auth status` exists and shows the signed-in account. | [verified] `claude auth --help` (2.1.283) |
 | F17 | Claude Code sends the statusline JSON as UTF-8 and reads the script's output as UTF-8. On Windows, Python decodes pipes with the local code page (cp1252, cp874, ...) unless UTF-8 mode is on, so `cct statusline` reads and writes bytes. | [inferred], Q5 · the crash with another code page is reproduced in the tests with `PYTHONIOENCODING` |
+| F18 | On Linux, Claude Code's config folder is `$CLAUDE_CONFIG_DIR`, or `~/.claude` when it is unset. It does not use `~/.config/claude`. | [verified] code of Claude Code 2.1.316 on Linux (`process.env.CLAUDE_CONFIG_DIR \|\| join(homedir(), ".claude")`) |
 
 Claude Code issues referenced: [#10063](https://github.com/anthropics/claude-code/issues/10063),
 [#33430](https://github.com/anthropics/claude-code/issues/33430),
