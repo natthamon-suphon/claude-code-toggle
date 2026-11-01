@@ -22,7 +22,8 @@ What cct promises, and what counts as a vulnerability if it is broken:
 | exposes data to other devices | `cct web` binds to `127.0.0.1` only. |
 | lets other websites read the dashboard | The `Host` header must be `127.0.0.1:PORT` or `localhost:PORT` (blocks DNS rebinding). Responses use `Cache-Control: no-store`, `X-Content-Type-Options: nosniff` and a strict Content Security Policy with a per-start script nonce. |
 | lets the dashboard change anything | Only `GET` is handled. There are no write endpoints. |
-| overwrites your files | `cct add` and `cct link` skip anything that already exists. `cct install-statusline` backs up each `settings.json` before it changes it. |
+| overwrites your files | `cct add` and `cct link` skip anything that already exists. `cct install-statusline` backs up each `settings.json` before it changes it, and leaves alone one it can't read as a JSON object. |
+| starts `claude` with options you didn't give | A session ID must be letters, digits, `-` and `_`, and can't start with `-`. A saved ID that breaks this is ignored, and a typed one is refused. |
 
 What cct stores in `~/.cct`: account names, config folder paths, usage percentages, reset times, project folder
 paths and session IDs. No passwords, tokens or keys.

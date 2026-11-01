@@ -84,6 +84,7 @@ def test_missing_rate_limits_keeps_old_numbers(work, cfg, monkeypatch, capsys):
         json.dumps({"rate_limits": {"five_hour": {"used_percentage": "lots"}}}),
         json.dumps({"rate_limits": {"five_hour": {"used_percentage": [1]}}}),
         json.dumps({"session_id": "s", "cwd": 5}),
+        "[" * 100_000,  # nested too deeply for Python's JSON reader
     ],
 )
 def test_bad_input_logs_and_prints_short_error(cfg, monkeypatch, capsys, stdin):
@@ -181,6 +182,7 @@ def test_broken_config_prints_error_line(monkeypatch, capsys):
         '{"five_hour": "x", "seven_day": {"pct": "10"}}',
         '{"five_hour": {"pct": NaN}, "seven_day": {"pct": Infinity}}',
         '{"five_hour": {"pct": 1e999}, "seven_day": {"pct": 1' + "0" * 400 + "}}",
+        '{"five_hour": ' + "[" * 100_000,
     ],
 )
 def test_damaged_usage_file_does_not_crash(cfg, monkeypatch, capsys, damage):
@@ -225,3 +227,27 @@ def test_non_text_session_id_is_not_saved(work, cfg, monkeypatch, capsys):
 def test_statusline_text_rounds_percent():
     usage = {"five_hour": {"pct": 99.5, "resets_at": None}, "seven_day": {"pct": 0.4, "resets_at": None}}
     assert statusline_text("acc2", usage) == "[acc2] 5h 100% 7d 0%"
+
+
+def test_unexpected_error_is_logged_not_shown(cfg, monkeypatch, capsys):
+    """Whatever goes wrong inside, Claude Code's screen gets one short line and no traceback."""
+    from cct.commands import statusline as statusline_cmd
+
+    def broken(acc_name, usage):
+        raise KeyError("something nobody planned for")
+
+    monkeypatch.setattr(statusline_cmd, "statusline_text", broken)
+    assert hook(monkeypatch, capsys, "{}") == [ERROR_LINE]
+    assert "something nobody planned for" in logged()
+
+
+def test_closed_output_pipe_is_logged_not_raised(cfg, monkeypatch):
+    from cct.commands import statusline as statusline_cmd
+
+    def closed(data):
+        raise BrokenPipeError(32, "Broken pipe")
+
+    monkeypatch.setattr(sys, "stdin", io.StringIO("{}"))
+    monkeypatch.setattr(statusline_cmd, "write_out", closed)
+    assert cmd_statusline() == 0
+    assert "statusline output" in logged()

@@ -36,6 +36,7 @@ def validate_config(data, source) -> Config:
     accounts = data.get("accounts")
     if not isinstance(accounts, list) or not accounts:
         raise CctError(f"{source} has no accounts. Fix it or delete it.")
+    seen = set()
     for acc in accounts:
         if (
             not isinstance(acc, dict)
@@ -43,6 +44,10 @@ def validate_config(data, source) -> Config:
             or not isinstance(acc.get("dir"), (str, type(None)))
         ):
             raise CctError(f"Bad account entry in {source}: {acc!r}")
+        # Names become file and folder names, and macOS and Windows ignore case in those.
+        if acc["name"].casefold() in seen:
+            raise CctError(f"Two accounts in {source} are named '{acc['name']}' (upper/lower case counts as the same).")
+        seen.add(acc["name"].casefold())
     if not isinstance(data.get("prev_statusline"), (str, type(None))):
         raise CctError(f"Bad prev_statusline in {source}: {data['prev_statusline']!r}")
     return data

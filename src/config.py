@@ -14,7 +14,7 @@ def load_config() -> Config:
     config_file = paths.config_file()
     try:
         cfg = read_json(config_file)
-    except ValueError as err:
+    except (ValueError, RecursionError) as err:  # RecursionError: JSON nested too deeply
         raise CctError(f"{config_file} is not valid JSON ({err}). Fix it or delete it.") from err
     if cfg is None:
         cfg = default_config()

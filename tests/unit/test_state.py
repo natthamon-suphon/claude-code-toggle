@@ -47,3 +47,10 @@ def test_read_state_logs_os_errors(tmp_path, monkeypatch):
     monkeypatch.setattr(state, "read_json", locked)
     assert read_state(tmp_path / "x.json") is None
     assert "PermissionError('locked')" in paths.error_log().read_text(encoding="utf-8")
+
+
+def test_read_state_json_nested_too_deeply_is_no_data(tmp_path):
+    path = tmp_path / "deep.json"
+    path.write_text("[" * 100_000, encoding="utf-8")
+    assert read_state(path) is None
+    assert "RecursionError" in paths.error_log().read_text(encoding="utf-8")

@@ -14,7 +14,6 @@ Planned work, in priority order. Nothing here may break the hard rules in [CLAUD
 ## Later
 
 - `cct rename OLD NEW`: update the config and move `usage/OLD.json`.
-- Handle `BrokenPipeError` when output is piped (`cct install-statusline | head` shows a traceback today).
 - `cct status --json`.
 - Windows: turn on console ANSI colors with `SetConsoleMode` instead of relying on `WT_SESSION`.
 - Windows: `cct web` inherits `SO_REUSEADDR` from `http.server`, which on Windows lets two programs share a port.

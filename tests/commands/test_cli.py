@@ -75,7 +75,10 @@ def test_version(capsys):
     assert capsys.readouterr().out.strip() == f"cct {__version__}"
 
 
-@pytest.mark.parametrize("argv", [[], ["fly"], ["web", "--port", "abc"], ["add"]])
+@pytest.mark.parametrize(
+    "argv",
+    [[], ["fly"], ["web", "--port", "abc"], ["web", "--port", "99999"], ["web", "--port", "-1"], ["add"]],
+)
 def test_bad_usage_exits_2(argv, capsys):
     with pytest.raises(SystemExit) as exit_info:
         cli.main(argv)
@@ -116,3 +119,36 @@ def test_main_reads_sys_argv(monkeypatch, calls):
     monkeypatch.setattr(cli.sys, "argv", ["cct", "status"])
     assert cli.main() == 0
     assert calls == [("cmd_status", (), {})]
+
+
+@pytest.mark.parametrize("port", ["0", "65535"])
+def test_web_port_range_ends_are_accepted(calls, port):
+    assert cli.main(["web", "--port", port]) == 0
+    assert calls == [("cmd_web", (int(port), True), {})]
+
+
+def test_file_problems_exit_1_without_a_traceback(capsys, monkeypatch):
+    """For example a read-only ~/.cct, or ~/.cct being a file."""
+    monkeypatch.setattr(paths, "cct_home", lambda: paths.Path(__file__))  # a file, not a folder
+    assert cli.main(["list"]) == 1
+    err = capsys.readouterr().err
+    assert err.startswith("cct: [Errno")
+    assert "Traceback" not in err
+
+
+def test_closed_output_pipe_exits_1_quietly(capsys, monkeypatch):
+    def closed(cfg):
+        raise BrokenPipeError(32, "Broken pipe")
+
+    monkeypatch.setattr(status, "cmd_status", closed)
+    assert cli.main(["status"]) == 1
+    assert "Traceback" not in capsys.readouterr().err
+
+
+def test_ctrl_c_exits_130_without_a_traceback(capsys, monkeypatch):
+    def interrupted(cfg):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(status, "cmd_status", interrupted)
+    assert cli.main(["status"]) == 130
+    assert "Traceback" not in capsys.readouterr().err

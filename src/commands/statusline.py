@@ -65,14 +65,17 @@ def cmd_statusline() -> int:
         data = parse_input(raw.decode("utf-8", errors="replace"))
         acc_name = detect_account(cfg)
         text = statusline_text(acc_name, record(acc_name, data))
-    except (CctError, OSError, ValueError, TypeError) as err:
+    except Exception as err:  # anything at all: Claude Code's screen must never show a traceback
         log_error("statusline", err)
         text = "[cct error: see ~/.cct/error.log]"
-    write_out(text.encode("utf-8", errors="replace") + b"\n")
-    if prev_cmd:
-        out = run_previous(prev_cmd, raw)
-        if out:
-            write_out(out + b"\n")
+    try:
+        write_out(text.encode("utf-8", errors="replace") + b"\n")
+        if prev_cmd:
+            out = run_previous(prev_cmd, raw)
+            if out:
+                write_out(out + b"\n")
+    except OSError as err:  # for example, Claude Code closed the pipe
+        log_error("statusline output", err)
     return 0
 
 
@@ -81,9 +84,12 @@ def cmd_install_statusline(cfg: Config) -> int:
     for path in settings_files(cfg):
         try:
             settings = read_json(path)
-        except ValueError as err:
+        except (ValueError, RecursionError) as err:  # RecursionError: JSON nested too deeply
             raise CctError(f"{path} is not valid JSON ({err}). Not touching it.") from err
-        settings = settings if isinstance(settings, dict) else {}
+        if settings is None:
+            settings = {}
+        elif not isinstance(settings, dict):
+            raise CctError(f"{path} is not a JSON object. Not touching it.")
         current = settings.get("statusLine")
         cur_cmd = current.get("command") if isinstance(current, dict) else None
         if cur_cmd == ours:

@@ -126,8 +126,13 @@ def test_valid_session_passes_good_sessions_through():
     assert valid_session(good) == good
 
 
-@pytest.mark.parametrize("raw", [None, [], {}, {"session_id": ""}, {"session_id": 12345}, {"session_id": None}])
+@pytest.mark.parametrize(
+    "raw",
+    [None, [], {}, {"session_id": ""}, {"session_id": 12345}, {"session_id": None},
+     {"session_id": "--dangerously-skip-permissions"}, {"session_id": "-x"}, {"session_id": "a b"}],
+)  # fmt: skip
 def test_valid_session_needs_a_session_id(raw):
+    """A saved ID goes to `claude --resume`, so one that could be read as an option is damage."""
     assert valid_session(raw) is None
 
 
@@ -170,7 +175,7 @@ def test_parse_input_object():
     assert parse_input('{"session_id": "s"}') == {"session_id": "s"}
 
 
-@pytest.mark.parametrize("raw", ["{broken", "[1, 2]", '"text"', "42", "null"])
+@pytest.mark.parametrize("raw", ["{broken", "[1, 2]", '"text"', "42", "null", "[" * 100_000])
 def test_parse_input_rejects_non_objects(raw):
     with pytest.raises(ValueError):
         parse_input(raw)
@@ -191,8 +196,10 @@ def test_project_folder_order(data, expected):
 
 
 @pytest.mark.parametrize(
-    "data, expected", [({"session_id": "s"}, "s"), ({"session_id": ""}, None), ({"session_id": 5}, None), ({}, None)]
-)
+    "data, expected",
+    [({"session_id": "s"}, "s"), ({"session_id": ""}, None), ({"session_id": 5}, None), ({}, None),
+     ({"session_id": "--model"}, None), ({"session_id": "a;b"}, None)],
+)  # fmt: skip
 def test_session_id(data, expected):
     assert session_id(data) == expected
 

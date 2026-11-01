@@ -117,7 +117,7 @@ def test_resume_a_given_session_id(machine):
     assert machine.starts()[-1]["args"] == ["--resume", "0b7c1e7e-1234-4abc-9def-0123456789ab"]
 
 
-def test_run_passes_args_and_exit_code(machine):
+def test_start_passes_args_and_exit_code(machine):
     result = machine.cct("start", "--", "--model", "some-model", FAKE_EXIT="3")
     assert result.returncode == 3
     assert machine.starts()[0]["args"] == ["--model", "some-model"]

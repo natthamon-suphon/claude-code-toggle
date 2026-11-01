@@ -67,8 +67,11 @@ def create_profile_dir(cfg: Config, name: str, folder: str | None) -> Path:
     """Check the name and folder, then create the folder. Does not link or save."""
     if not is_valid_name(name):
         raise CctError("Use letters, digits, '-' or '_' (max 32) for the name.")
-    if name in account_names(cfg):
-        raise CctError(f"Account '{name}' already exists.")
+    if name.casefold() == "unknown":
+        raise CctError("'unknown' is what the statusline shows for an account it can't tell. Pick another name.")
+    for existing in account_names(cfg):
+        if existing.casefold() == name.casefold():  # macOS and Windows ignore case in folder names
+            raise CctError(f"Account '{existing}' already exists.")
     target = (Path(folder).expanduser() if folder else Path.home() / f".claude-{name}").absolute()
     if same_file(target, paths.default_claude_home()):
         raise CctError("That is the default folder. It already belongs to the first account.")

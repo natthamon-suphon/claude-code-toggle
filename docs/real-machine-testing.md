@@ -19,6 +19,7 @@ Status: **[unknown]** = not tested yet · **[verified]** = tested, result below 
 | Q9 | Windows: do Ctrl+C and Esc inside Claude Code still work under `cct start`, and does the exit prompt show? | Manual test. | [unknown] |
 | Q10 | The statusline command stores the absolute Python path. Does it break when Homebrew Python (or the pipx venv) is upgraded or moved, or after a Fedora release upgrade brings a new Python? | After an upgrade, check the status bar. The fix is `pipx reinstall-all` (pipx installs only), then `cct install-statusline` (it is safe to repeat). | [unknown] |
 | Q11 | Fedora 44: does the whole flow work? | Install with `pipx`, `cct add work`, then `cct start work` and `/login` with the second account. `claude auth status` in plain `claude` and with `CLAUDE_CONFIG_DIR=~/.claude-work` must show different emails. Then `cct install-statusline` (cct's line shows in Claude Code), `/exit` and answer `y` (the session moves), and `cct web` (the browser opens; use `--no-open` over SSH). Note whether Claude Code came from the native installer or dnf. | [unknown] |
+| Q12 | Does `cct resume --session ID` work from a different folder than the one the session ran in? | Take a full session ID from a file in `~/.cct/sessions/`, `cd` to another folder and run `cct resume work --session ID`. Note whether Claude Code opens it or says it can't find it. | [unknown] |
 
 ## Results
 

@@ -161,8 +161,8 @@ Close the old Claude Code window first, so two accounts don't write to the same 
 | `cct install-statusline` | Make cct the statusline in every account's `settings.json`. |
 | `cct --version` | Print the version. |
 
-Exit codes: `0` success, `1` a problem you can fix (the message says what), `2` wrong command-line usage.
-`cct start` returns Claude Code's own exit code.
+Exit codes: `0` success, `1` a problem you can fix (the message says what), `2` wrong command-line usage,
+`130` stopped with Ctrl+C. `cct start` returns Claude Code's own exit code.
 
 ## What is shared between accounts
 
@@ -230,9 +230,9 @@ cct is provided "as is", without warranty (see the [license](LICENSE)).
 
 Version 0.1.1, alpha. CI runs the full test suite on Linux, macOS and Windows with Python 3.9 to 3.14, and on
 Fedora 44 with Fedora's own Python, using a fake `claude`. Some behavior still needs checking against a real
-Claude Code install, mostly on Windows and Linux. The
-list is in [docs/real-machine-testing.md](docs/real-machine-testing.md). Results from your machine are welcome:
-please open an issue.
+Claude Code install, mostly on Windows and Linux. The list is in
+[docs/real-machine-testing.md](docs/real-machine-testing.md). Results from your machine are welcome: please open
+an issue.
 
 ## Development
 

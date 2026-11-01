@@ -65,29 +65,29 @@ def answers(monkeypatch):
 # ------------------------------------------------------------------ cmd_start
 
 
-def test_run_starts_first_account_by_default(work, three_accounts, claude, capsys):
+def test_start_starts_first_account_by_default(work, three_accounts, claude, capsys):
     assert cmd_start(three_accounts, None, [], ask=False) == 0
     assert claude.calls == [("main", [])]
     assert "cct: starting Claude Code as 'main'" in capsys.readouterr().out
 
 
-def test_run_named_account_with_extra_args(work, three_accounts, claude):
+def test_start_named_account_with_extra_args(work, three_accounts, claude):
     cmd_start(three_accounts, "acc2", ["--model", "x"], ask=False)
     assert claude.calls == [("acc2", ["--model", "x"])]
 
 
-def test_run_unknown_account_is_a_user_error(three_accounts, claude):
+def test_start_unknown_account_is_a_user_error(three_accounts, claude):
     with pytest.raises(CctError):
         cmd_start(three_accounts, "nobody", [])
     assert claude.calls == []
 
 
-def test_run_passes_exit_code_through(work, three_accounts, monkeypatch):
+def test_start_passes_exit_code_through(work, three_accounts, monkeypatch):
     monkeypatch.setattr(launcher, "launch", FakeClaude(rc=7))
     assert cmd_start(three_accounts, None, [], ask=False) == 7
 
 
-def test_run_does_not_ask_without_a_terminal(work, three_accounts, claude, monkeypatch):
+def test_start_does_not_ask_without_a_terminal(work, three_accounts, claude, monkeypatch):
     class Pipe:
         def isatty(self):
             return False
@@ -97,7 +97,7 @@ def test_run_does_not_ask_without_a_terminal(work, three_accounts, claude, monke
     assert claude.calls == [("main", [])]
 
 
-def test_run_does_not_ask_when_no_session_ran_here(work, three_accounts, answers, monkeypatch):
+def test_start_does_not_ask_when_no_session_ran_here(work, three_accounts, answers, monkeypatch):
     fake = FakeClaude(records_session=False)
     monkeypatch.setattr(launcher, "launch", fake)
     save_session(str(work), "old", "main", time.time() - 3600)  # from an earlier run
@@ -107,7 +107,7 @@ def test_run_does_not_ask_when_no_session_ran_here(work, three_accounts, answers
     assert fake.calls == [("main", [])]
 
 
-def test_run_ignores_damaged_session_time(work, three_accounts, answers, monkeypatch):
+def test_start_ignores_damaged_session_time(work, three_accounts, answers, monkeypatch):
     from cct import paths
     from cct.services.sessions import project_key
     from cct.utils.fs import write_json
@@ -120,7 +120,7 @@ def test_run_ignores_damaged_session_time(work, three_accounts, answers, monkeyp
     assert prompts == []
 
 
-def test_run_yes_resumes_same_session_on_next_account(work, three_accounts, claude, answers):
+def test_start_yes_resumes_same_session_on_next_account(work, three_accounts, claude, answers):
     prompts = answers("y", "")
     cmd_start(three_accounts, None, [])
     assert claude.calls == [("main", []), ("acc2", ["--resume", "sid-1"])]
@@ -128,41 +128,41 @@ def test_run_yes_resumes_same_session_on_next_account(work, three_accounts, clau
     assert prompts[1].startswith("Resume this session on 'acc3'")
 
 
-def test_run_account_name_answer_picks_that_account(work, three_accounts, claude, answers):
+def test_start_account_name_answer_picks_that_account(work, three_accounts, claude, answers):
     answers("acc3", "")
     cmd_start(three_accounts, None, [])
     assert claude.calls == [("main", []), ("acc3", ["--resume", "sid-1"])]
 
 
 @pytest.mark.parametrize("answer", ["", "n", "N", "no", "maybe", "main", "YES please"])
-def test_run_other_answers_stop(work, three_accounts, claude, answers, answer):
+def test_start_other_answers_stop(work, three_accounts, claude, answers, answer):
     answers(answer)
     cmd_start(three_accounts, None, [])
     assert claude.calls == [("main", [])]
 
 
 @pytest.mark.parametrize("answer", ["Y", "yes", "YES", "  y  "])
-def test_run_yes_variants(work, three_accounts, claude, answers, answer):
+def test_start_yes_variants(work, three_accounts, claude, answers, answer):
     answers(answer, "")
     cmd_start(three_accounts, None, [])
     assert claude.calls[1][0] == "acc2"
 
 
 @pytest.mark.parametrize("error", [EOFError(), KeyboardInterrupt()])
-def test_run_ctrl_d_or_ctrl_c_at_prompt_stops(work, three_accounts, claude, answers, error):
+def test_start_ctrl_d_or_ctrl_c_at_prompt_stops(work, three_accounts, claude, answers, error):
     answers(error)
     assert cmd_start(three_accounts, None, []) == 0
     assert claude.calls == [("main", [])]
 
 
-def test_run_with_one_account_never_asks(work, cfg, claude, answers):
+def test_start_with_one_account_never_asks(work, cfg, claude, answers):
     prompts = answers("y")
     cmd_start(cfg, None, [])
     assert prompts == []
     assert claude.calls == [("main", [])]
 
 
-def test_run_warns_when_api_key_is_set(work, three_accounts, claude, monkeypatch, capsys):
+def test_start_warns_when_api_key_is_set(work, three_accounts, claude, monkeypatch, capsys):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "placeholder-not-a-real-key")
     cmd_start(three_accounts, None, [], ask=False)
     err = capsys.readouterr().err
@@ -282,4 +282,17 @@ def test_resume_unseen_session_on_a_named_account(work, three_accounts, claude, 
 def test_resume_rejects_what_is_not_a_session_id(work, three_accounts, claude, bad):
     with pytest.raises(CctError, match="isn't a session ID"):
         cmd_resume(three_accounts, "acc2", bad)
+    assert claude.calls == []
+
+
+def test_resume_ignores_a_saved_id_that_looks_like_an_option(work, three_accounts, claude):
+    """A damaged or hand-edited record must never start `claude` with an option the user didn't ask for."""
+    from cct import paths
+    from cct.services.sessions import project_key
+    from cct.utils.fs import write_json
+
+    record = {"folder": str(work), "session_id": "--dangerously-skip-permissions", "account": "main", "updated_at": 1.0}
+    write_json(paths.session_dir() / f"{project_key(str(work))}.json", record)
+    with pytest.raises(CctError, match="No session recorded for this folder yet"):
+        cmd_resume(three_accounts, None)
     assert claude.calls == []

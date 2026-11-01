@@ -150,6 +150,19 @@ def test_create_profile_dir_rejects_duplicate_name(cfg):
         create_profile_dir(cfg, "main", None)
 
 
+def test_create_profile_dir_rejects_a_name_that_differs_only_in_case(three_accounts):
+    """On macOS and Windows, ~/.claude-ACC2 and ~/.claude-acc2 are the same folder."""
+    with pytest.raises(CctError, match="Account 'acc2' already exists"):
+        create_profile_dir(three_accounts, "ACC2", None)
+
+
+@pytest.mark.parametrize("name", ["unknown", "Unknown"])
+def test_create_profile_dir_rejects_unknown(cfg, name):
+    """The statusline shows 'unknown' for an account it can't tell, and never saves usage for it."""
+    with pytest.raises(CctError, match="'unknown' is what the statusline shows"):
+        create_profile_dir(cfg, name, None)
+
+
 def test_create_profile_dir_rejects_default_folder(home, cfg):
     with pytest.raises(CctError, match="default folder"):
         create_profile_dir(cfg, "acc2", str(home / ".claude"))

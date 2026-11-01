@@ -14,7 +14,7 @@ evidence, not proven; **[unknown]** = must be tested (see [real-machine-testing.
 | Usage numbers | From the statusline JSON that Claude Code gives to statusline scripts. | An official channel. No tokens, no network. |
 | Auto-switching | Not built, on purpose. | A human confirms every switch. |
 | Dashboard | Terminal table (`cct status`) and a local web page (`cct web`). | The table for a quick look, the page for one that refreshes itself. The page is read-only and loopback-only. |
-| Runtime | Python 3.9+, standard library only. Distributed as a package and as a single-file zipapp. | Runs the same on macOS and Windows with nothing else to install. |
+| Runtime | Python 3.9+, standard library only. Distributed as a package and as a single-file zipapp. | Runs the same on macOS, Linux and Windows with nothing else to install. |
 
 ## Layers
 
@@ -35,13 +35,13 @@ config.py, paths.py, errors.py: shared by every layer
 | `config.py` | Load and save `config.json`; look up accounts |
 | `services/profiles.py` | Create profile folders; link shared items (symlink, or junction/copy on Windows) |
 | `services/launcher.py` | Build the environment for an account and start `claude` |
-| `services/sessions.py` | The last session per project folder |
+| `services/sessions.py` | The last session per project folder; find a session ID in any folder |
 | `services/usage.py` | Save usage; turn it into ok / reset / unknown views |
 | `services/statusline.py` | Detect the running account; record usage and session; build the statusline command |
 | `services/state.py` | Tolerant reads of state files; `error.log` |
 | `schema/config.py` | `Config`, `Account`; `validate_config`, account name rule |
 | `schema/usage.py` | `Usage`, `Window`; drop damaged parts of a usage file |
-| `schema/session.py` | `Session`; drop a session without a usable ID, repair other fields |
+| `schema/session.py` | `Session`; the session ID rule; drop a session without a usable ID, repair other fields |
 | `schema/statusline.py` | `StatuslineInput` (what Claude Code sends); parse stdin, `rate_limits` windows, project folder |
 | `utils/fs.py` | Atomic JSON writes, link detection |
 | `utils/timefmt.py` | Timestamps in (seconds, milliseconds, ISO-8601), short text out |
@@ -57,6 +57,7 @@ Claude Code ──stdin JSON──▶ cct statusline ──▶ ~/.cct/usage/<acc
                                 └──stdout──▶ "[acc2] 5h 40% 7d 13%" (+ your old statusline)
 
 cct start NAME ──env──▶ claude ... (exit) ──▶ session updated here? ──▶ ask ──▶ claude --resume <id> as next account
+cct resume [NAME] [--session ID] ──▶ claude --resume <id> (this folder's last session, or ID)
 cct status / cct web ◀── reads ~/.cct/usage and ~/.cct/sessions
 ```
 
@@ -101,6 +102,11 @@ The types and checks live in `src/schema/`; these are examples.
 ```
 
 Account names must fully match `[A-Za-z0-9_-]{1,32}`, checked on every load, because they become file names.
+Two names that differ only in upper/lower case are not allowed, because macOS and Windows treat such file names
+as one. The name `unknown` is taken: the statusline uses it for an account it can't tell.
+
+Session IDs must fully match `[A-Za-z0-9][A-Za-z0-9_-]{0,127}`: from Claude Code, in a saved file, or typed after
+`--session`. They go to `claude --resume`, so an ID that could be read as an option (`-x`) is treated as damage.
 All writes are atomic (write a temp file, then `os.replace`, retried on Windows `PermissionError`).
 
 ## Web page
@@ -124,7 +130,7 @@ All writes are atomic (write a temp file, then `os.replace`, retried on Windows 
 | F6 | `rate_limits` has been missing in some versions. | [verified] issues #40094, #45133, #95918 |
 | F7 | `resets_at` has been seen as Unix seconds and as ISO-8601 text. cct accepts both, and milliseconds. | [verified] issues #45133 (seconds), #40094 (ISO) |
 | F8 | The statusline JSON also has `session_id`, `transcript_path`, `cwd` and `workspace`. cct prefers `workspace.project_dir`. | [verified] key list in #40094 · [inferred] for `project_dir` |
-| F9 | `claude --resume <id>` resumes a session by ID; `claude -c/--continue` resumes the most recent one. | [verified] `claude --help` (2.1.283) |
+| F9 | `claude --resume <id>` resumes a session by ID (2.1.316 also takes a session name); `claude -c/--continue` resumes the most recent one. | [verified] `claude --help` (2.1.283, 2.1.316) |
 | F10 | `--continue` finds "most recent" through per-config-folder history, so cct always uses `--resume <id>`. | [inferred] issue #10063 |
 | F11 | With `projects/` shared, another account can `--resume` the same session. | [verified] macOS, Claude Code 2.1.296, Q4 |
 | F12 | If `ANTHROPIC_API_KEY` is set, Claude Code uses it instead of the subscription. | [verified] https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan |

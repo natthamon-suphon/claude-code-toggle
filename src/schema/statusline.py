@@ -11,6 +11,7 @@ import json
 from typing import Any, TypedDict
 
 from cct.schema.common import is_number, is_timestamp
+from cct.schema.session import is_session_id
 from cct.schema.usage import Window
 from cct.utils.timefmt import to_epoch
 
@@ -39,7 +40,10 @@ class StatuslineInput(TypedDict, total=False):
 
 def parse_input(raw: str) -> StatuslineInput:
     """Parse stdin. Empty input means {}; anything but a JSON object raises ValueError."""
-    data = json.loads(raw) if raw.strip() else {}
+    try:
+        data = json.loads(raw) if raw.strip() else {}
+    except RecursionError as err:
+        raise ValueError("statusline input is nested too deeply") from err
     if not isinstance(data, dict):
         raise ValueError("statusline input is not a JSON object")
     return data
@@ -52,8 +56,9 @@ def project_folder(data: StatuslineInput):
 
 
 def session_id(data: StatuslineInput) -> str | None:
+    """The session ID, or None when it is missing or can't be passed safely to `claude --resume`."""
     sid = data.get("session_id")
-    return sid if isinstance(sid, str) and sid else None
+    return sid if is_session_id(sid) else None
 
 
 def parse_window(raw) -> Window | None:

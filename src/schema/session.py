@@ -23,7 +23,8 @@ class Session(TypedDict):
 
 def valid_session(raw) -> Session | None:
     """A saved session, or None without a usable session ID. Other damaged fields get safe defaults."""
-    if not isinstance(raw, dict) or not isinstance(raw.get("session_id"), str) or not raw["session_id"]:
+    # The ID goes to `claude --resume`, so one that could be read as an option counts as damage.
+    if not isinstance(raw, dict) or not is_session_id(raw.get("session_id")):
         return None
     folder, account, updated_at = raw.get("folder"), raw.get("account"), raw.get("updated_at")
     return {
@@ -35,5 +36,5 @@ def valid_session(raw) -> Session | None:
 
 
 def is_session_id(value) -> bool:
-    """A session ID typed by the user, safe to pass to `claude --resume`."""
+    """A session ID that is safe to pass to `claude --resume`: typed by the user, saved, or sent by Claude Code."""
     return isinstance(value, str) and _SESSION_ID.fullmatch(value) is not None

@@ -3,10 +3,18 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 
 from cct import __version__
 from cct.errors import CctError
+
+
+def port(text: str) -> int:
+    number = int(text)
+    if not 0 <= number <= 65535:
+        raise argparse.ArgumentTypeError("use a port from 0 to 65535")
+    return number
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -26,7 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("-s", "--session", metavar="ID", help="the session to resume (default: this folder's last one)")
     sub.add_parser("status", help="usage table")
     p = sub.add_parser("web", help="usage page on 127.0.0.1")
-    p.add_argument("--port", type=int, default=8765)
+    p.add_argument("--port", type=port, default=8765)
     p.add_argument("--no-open", action="store_true", help="don't open the browser")
     sub.add_parser("install-statusline", help="add the usage hook to settings.json")
     return parser
@@ -73,3 +81,17 @@ def main(argv=None) -> int:
     except CctError as err:
         print(f"cct: {err}", file=sys.stderr)
         return 1
+    except BrokenPipeError:
+        # The reader went away, as in `cct status | head -1`. Send the rest of the output nowhere,
+        # so Python's final flush doesn't fail again.
+        try:
+            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        except (OSError, ValueError) as err:  # stdout is not a real file (in tests)
+            print(f"cct: {err}", file=sys.stderr)
+        return 1
+    except OSError as err:  # a file or folder problem, such as a read-only ~/.cct
+        print(f"cct: {err}", file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        print(file=sys.stderr)
+        return 130

@@ -25,7 +25,7 @@ def read_state(path: Path) -> dict | None:
     """Like read_json, but a broken, locked or non-object state file counts as 'no data'."""
     try:
         data = read_json(path)
-    except (OSError, ValueError) as err:
+    except (OSError, ValueError, RecursionError) as err:  # RecursionError: JSON nested too deeply
         log_error(f"read {path.name}", err)
         return None
     if data is not None and not isinstance(data, dict):

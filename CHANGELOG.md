@@ -22,6 +22,19 @@ All notable changes to this project are listed here. The format follows
 ### Fixed
 
 - `cct install-statusline` no longer drops other `statusLine` keys, such as `padding`.
+- A saved session ID that could be read as an option (for example `--dangerously-skip-permissions` in a damaged or
+  hand-edited `~/.cct/sessions` file) is now ignored instead of being passed to `claude --resume`. The statusline
+  no longer saves such an ID either.
+- JSON nested too deeply (on the statusline's stdin, or in a file in `~/.cct`) no longer causes a traceback. The
+  statusline now logs any unexpected error instead of showing it, including a closed output pipe.
+- File and folder problems (for example a read-only `~/.cct`), a closed output pipe (`cct status | head -1`) and
+  Ctrl+C now end with a short message instead of a traceback. Ctrl+C exits with code 130.
+- `cct web --port` only accepts 0 to 65535, instead of failing with a traceback.
+- `cct install-statusline` no longer replaces a `settings.json` that is valid JSON but not an object (for example
+  `[]`). It stops and leaves the file alone, as it already did for invalid JSON.
+- `cct add` refuses a name that differs from an existing one only in upper/lower case (on macOS and Windows both
+  would use the same folder), and the name `unknown`, which the statusline uses for an account it can't tell.
+  `config.json` with two such names gives a clear error.
 
 ## [0.1.1] - 2026-09-27
 

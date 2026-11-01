@@ -92,12 +92,19 @@ def test_install_creates_settings_where_missing(home, three_accounts, capsys):
     assert backups(home / ".claude-acc3") == []  # nothing to back up
 
 
-def test_install_replaces_non_object_settings(claude_home, cfg):
-    write_json(claude_home / "settings.json", ["not", "an", "object"])
-    cmd_install_statusline(cfg)
-    assert read_json(claude_home / "settings.json") == {
-        "statusLine": {"type": "command", "command": statusline_command()}
-    }
+@pytest.mark.parametrize("content", ['["not", "an", "object"]', '"text"', "42"])
+def test_install_refuses_settings_that_are_not_an_object(claude_home, cfg, content):
+    (claude_home / "settings.json").write_text(content, encoding="utf-8")
+    with pytest.raises(CctError, match="is not a JSON object. Not touching it."):
+        cmd_install_statusline(cfg)
+    assert (claude_home / "settings.json").read_text(encoding="utf-8") == content
+    assert not list(claude_home.glob("settings.json.cct-backup-*"))
+
+
+def test_install_refuses_json_nested_too_deeply(claude_home, cfg):
+    (claude_home / "settings.json").write_text("[" * 100_000, encoding="utf-8")
+    with pytest.raises(CctError, match="is not valid JSON"):
+        cmd_install_statusline(cfg)
 
 
 def test_install_refuses_invalid_json(claude_home, cfg):
