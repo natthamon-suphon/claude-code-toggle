@@ -7,7 +7,7 @@ import pytest
 from cct.errors import CctError
 from cct.schema.common import MAX_TIMESTAMP, is_number, is_timestamp
 from cct.schema.config import default_config, is_valid_name, validate_config
-from cct.schema.session import Session, valid_session
+from cct.schema.session import Session, is_session_id, valid_session
 from cct.schema.statusline import parse_input, parse_window, project_folder, session_id
 from cct.schema.usage import Usage, Window, valid_usage, valid_window
 from cct.services.sessions import last_session, save_session
@@ -140,6 +140,16 @@ def test_valid_session_repairs_other_damaged_fields():
 def test_valid_session_repairs_impossible_update_times(updated_at):
     raw = {"folder": "/p", "session_id": "abc", "account": "main", "updated_at": updated_at}
     assert valid_session(raw)["updated_at"] == 0.0
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [("0b7c1e7e-1234-4abc-9def-0123456789ab", True), ("abc_DEF-9", True), ("x" * 128, True),
+     ("x" * 129, False), ("", False), ("-x", False), ("--model", False), ("a b", False), ("a;b", False),
+     ("abc\n", False), ("ภาษา", False), (None, False), (123, False)],
+)  # fmt: skip
+def test_is_session_id(value, expected):
+    assert is_session_id(value) is expected
 
 
 def test_saved_session_matches_the_schema(work):

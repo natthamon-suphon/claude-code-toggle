@@ -10,9 +10,11 @@ from pathlib import Path
 from cct.config import account_names, get_account, next_account
 from cct.errors import CctError
 from cct.schema.config import Account, Config
+from cct.schema.session import Session, is_session_id
 from cct.services import launcher
-from cct.services.sessions import last_session
+from cct.services.sessions import find_session, last_session
 from cct.services.usage import usage_rows
+from cct.utils.fs import same_file
 from cct.utils.timefmt import fmt_ago
 
 
@@ -75,20 +77,40 @@ def cmd_start(cfg: Config, name: str | None, args: list, ask: bool = True) -> in
         acc, args = target, ["--resume", sess["session_id"]]
 
 
-def cmd_resume(cfg: Config, name: str | None) -> int:
-    sess = last_session(Path.cwd())
-    if not sess or not sess.get("session_id"):
-        raise CctError(
-            "No session recorded for this folder yet. Start Claude here with "
-            "`cct start`, and run `cct install-statusline` once per computer."
+def given_session(session_id: str, name: str | None) -> Session:
+    """The session the user named with --session, with what cct knows about it."""
+    if not is_session_id(session_id):
+        raise CctError(f"{session_id!r} isn't a session ID. Use letters, digits, '-' and '_' only.")
+    sess = find_session(session_id)
+    if sess is None:
+        if not name:
+            raise CctError(
+                f"cct hasn't seen session {session_id[:8]}, so it doesn't know which account it ran on. "
+                f"Name the account: cct resume NAME --session {session_id}"
+            )
+        return {"folder": "", "session_id": session_id, "account": "", "updated_at": 0.0}
+    if sess["folder"] and not same_file(Path(sess["folder"]), Path.cwd()):
+        print(
+            f"cct: note: cct last saw that session in {sess['folder']}. If Claude Code can't find it, run this there."
         )
+    return sess
+
+
+def cmd_resume(cfg: Config, name: str | None, session_id: str | None = None) -> int:
+    if session_id is not None:
+        sess = given_session(session_id, name)
+    else:
+        sess = last_session(Path.cwd())
+        if not sess or not sess.get("session_id"):
+            raise CctError(
+                "No session recorded for this folder yet. Start Claude here with "
+                "`cct start`, and run `cct install-statusline` once per computer."
+            )
     current = sess.get("account", "")
     target = get_account(cfg, name) if name else next_account(cfg, current)
     if target["name"] == current:
         print(f"cct: note: that session already ran on '{current}'.")
-    print(
-        f"cct: resuming session {sess['session_id'][:8]} "
-        f"(last active {fmt_ago(sess.get('updated_at'))}) on '{target['name']}'."
-    )
+    seen = f" (last active {fmt_ago(sess['updated_at'])})" if sess.get("updated_at") else ""
+    print(f"cct: resuming session {sess['session_id'][:8]}{seen} on '{target['name']}'.")
     print("cct: close the old Claude window first (/exit), so two accounts don't write to the same session.")
     return cmd_start(cfg, target["name"], ["--resume", sess["session_id"]])

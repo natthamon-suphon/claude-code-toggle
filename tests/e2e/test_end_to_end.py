@@ -100,7 +100,7 @@ def test_full_day(machine):
     assert "Last session in this folder ran on 'acc2'" in out
 
 
-def test_next_resumes_the_exact_session(machine):
+def test_resume_resumes_the_exact_session(machine):
     machine.cct("add", "acc2")
     machine.cct("start")
     machine.cct("resume")
@@ -108,6 +108,13 @@ def test_next_resumes_the_exact_session(machine):
     session_file = next((machine.home / ".cct" / "sessions").glob("*.json"))
     assert second["args"] == ["--resume", json.loads(session_file.read_text(encoding="utf-8"))["session_id"]]
     assert first["args"] == []
+
+
+def test_resume_a_given_session_id(machine):
+    machine.cct("add", "acc2")
+    result = machine.cct("resume", "acc2", "--session", "0b7c1e7e-1234-4abc-9def-0123456789ab")
+    assert result.returncode == 0, result.stderr
+    assert machine.starts()[-1]["args"] == ["--resume", "0b7c1e7e-1234-4abc-9def-0123456789ab"]
 
 
 def test_run_passes_args_and_exit_code(machine):

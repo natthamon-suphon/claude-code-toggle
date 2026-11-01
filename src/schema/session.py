@@ -5,9 +5,13 @@
 
 from __future__ import annotations
 
+import re
 from typing import TypedDict
 
 from cct.schema.common import is_timestamp
+
+# Letters, digits, '-' and '_'. No spaces, and no leading '-' that `claude` could read as an option.
+_SESSION_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}")
 
 
 class Session(TypedDict):
@@ -28,3 +32,8 @@ def valid_session(raw) -> Session | None:
         "account": account if isinstance(account, str) else "",
         "updated_at": updated_at if is_timestamp(updated_at) else 0.0,
     }
+
+
+def is_session_id(value) -> bool:
+    """A session ID typed by the user, safe to pass to `claude --resume`."""
+    return isinstance(value, str) and _SESSION_ID.fullmatch(value) is not None

@@ -21,9 +21,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("start", help="start Claude Code as an account; extra args after --")
     p.add_argument("name", nargs="?")
     p.add_argument("--no-ask", action="store_true", help="don't offer to switch when Claude exits")
-    sub.add_parser("resume", help="resume this folder's last session on another account").add_argument(
-        "name", nargs="?"
-    )
+    p = sub.add_parser("resume", help="resume a session on another account (default: this folder's last one)")
+    p.add_argument("name", nargs="?")
+    p.add_argument("-s", "--session", metavar="ID", help="the session to resume (default: this folder's last one)")
     sub.add_parser("status", help="usage table")
     p = sub.add_parser("web", help="usage page on 127.0.0.1")
     p.add_argument("--port", type=int, default=8765)
@@ -64,7 +64,7 @@ def main(argv=None) -> int:
         if args.cmd == "start":
             return run.cmd_start(cfg, args.name, extra, ask=not args.no_ask)
         if args.cmd == "resume":
-            return run.cmd_resume(cfg, args.name)
+            return run.cmd_resume(cfg, args.name, args.session)
         if args.cmd == "status":
             return status.cmd_status(cfg)
         if args.cmd == "web":

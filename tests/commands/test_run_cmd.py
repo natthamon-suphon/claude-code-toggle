@@ -198,12 +198,12 @@ def test_short_usage(five, seven, expected):
 # ------------------------------------------------------------------ cmd_resume
 
 
-def test_next_without_session_is_a_user_error(work, three_accounts):
+def test_resume_without_session_is_a_user_error(work, three_accounts):
     with pytest.raises(CctError, match="No session recorded for this folder yet"):
         cmd_resume(three_accounts, None)
 
 
-def test_next_resumes_on_the_following_account(work, three_accounts, claude, capsys, monkeypatch):
+def test_resume_resumes_on_the_following_account(work, three_accounts, claude, capsys, monkeypatch):
     monkeypatch.setattr(sys, "stdin", type("Pipe", (), {"isatty": lambda self: False})())
     save_session(str(work), "12345678-aaaa", "main", time.time())
     assert cmd_resume(three_accounts, None) == 0
@@ -213,22 +213,73 @@ def test_next_resumes_on_the_following_account(work, three_accounts, claude, cap
     assert "close the old Claude window first" in out
 
 
-def test_next_named_account(work, three_accounts, claude, monkeypatch):
+def test_resume_named_account(work, three_accounts, claude, monkeypatch):
     monkeypatch.setattr(sys, "stdin", type("Pipe", (), {"isatty": lambda self: False})())
     save_session(str(work), "s", "main", time.time())
     cmd_resume(three_accounts, "acc3")
     assert claude.calls == [("acc3", ["--resume", "s"])]
 
 
-def test_next_same_account_prints_a_note(work, three_accounts, claude, capsys, monkeypatch):
+def test_resume_same_account_prints_a_note(work, three_accounts, claude, capsys, monkeypatch):
     monkeypatch.setattr(sys, "stdin", type("Pipe", (), {"isatty": lambda self: False})())
     save_session(str(work), "s", "acc2", time.time())
     cmd_resume(three_accounts, "acc2")
     assert "note: that session already ran on 'acc2'" in capsys.readouterr().out
 
 
-def test_next_unknown_account_is_a_user_error(work, three_accounts, claude):
+def test_resume_unknown_account_is_a_user_error(work, three_accounts, claude):
     save_session(str(work), "s", "main", time.time())
     with pytest.raises(CctError, match="No account named"):
         cmd_resume(three_accounts, "nobody")
+    assert claude.calls == []
+
+
+# ------------------------------------------------------------------ cmd_resume --session
+
+
+@pytest.fixture
+def pipe_stdin(monkeypatch):
+    monkeypatch.setattr(sys, "stdin", type("Pipe", (), {"isatty": lambda self: False})())
+
+
+def test_resume_given_session_instead_of_the_folders_last(work, three_accounts, claude, pipe_stdin, capsys):
+    save_session(str(work.parent / "other"), "older-id", "acc2", time.time() - 600)
+    save_session(str(work), "latest-id", "main", time.time())  # this folder's last session: not used
+    assert cmd_resume(three_accounts, None, "older-id") == 0
+    assert claude.calls == [("acc3", ["--resume", "older-id"])]  # the account after acc2, where it last ran
+    assert "cct: resuming session older-id (last active 10m ago) on 'acc3'." in capsys.readouterr().out
+
+
+def test_resume_given_session_on_a_named_account(work, three_accounts, claude, pipe_stdin):
+    save_session(str(work), "s-1", "main", time.time())
+    cmd_resume(three_accounts, "acc3", "s-1")
+    assert claude.calls == [("acc3", ["--resume", "s-1"])]
+
+
+def test_resume_given_session_from_another_folder_prints_a_note(work, three_accounts, claude, pipe_stdin, capsys):
+    other = work.parent / "other"
+    save_session(str(other), "s-2", "main", time.time())
+    cmd_resume(three_accounts, None, "s-2")
+    assert claude.calls == [("acc2", ["--resume", "s-2"])]
+    assert f"cct: note: cct last saw that session in {other}. If Claude Code can't find it" in capsys.readouterr().out
+
+
+def test_resume_unseen_session_needs_an_account_name(work, three_accounts, claude):
+    with pytest.raises(CctError, match="doesn't know which account it ran on. Name the account: cct resume NAME"):
+        cmd_resume(three_accounts, None, "0b7c1e7e-unseen")
+    assert claude.calls == []
+
+
+def test_resume_unseen_session_on_a_named_account(work, three_accounts, claude, pipe_stdin, capsys):
+    cmd_resume(three_accounts, "acc2", "0b7c1e7e-unseen")
+    assert claude.calls == [("acc2", ["--resume", "0b7c1e7e-unseen"])]
+    out = capsys.readouterr().out
+    assert "cct: resuming session 0b7c1e7e on 'acc2'." in out  # no "last active": cct never saw it
+    assert "note:" not in out
+
+
+@pytest.mark.parametrize("bad", ["--model", "-x", "a b", "a;rm -rf", ""])
+def test_resume_rejects_what_is_not_a_session_id(work, three_accounts, claude, bad):
+    with pytest.raises(CctError, match="isn't a session ID"):
+        cmd_resume(three_accounts, "acc2", bad)
     assert claude.calls == []

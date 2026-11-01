@@ -12,6 +12,8 @@ All notable changes to this project are listed here. The format follows
   `all-about-agents/` when they exist in `~/.claude`. For an account you added earlier, run `cct link NAME`.
 - Fedora 44: CI now tests cct on Fedora with Fedora's own Python and pipx, and the README has Fedora install steps.
   Python 3.14 is tested on Linux, macOS and Windows.
+- `cct resume --session ID` (or `-s ID`) resumes that session instead of this folder's last one. Without `NAME`,
+  it goes to the account after the one where cct last saw the session.
 
 ### Changed
 

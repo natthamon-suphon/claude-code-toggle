@@ -143,6 +143,8 @@ When you want to continue on another account:
 3. Answer `y`, or type an account name. The same session opens on that account.
 
 You can also do this later, from the same folder: `cct resume` (the next account in the list) or `cct resume work`.
+To continue a different session instead of this folder's last one, give its full session ID:
+`cct resume work --session ID`.
 Close the old Claude Code window first, so two accounts don't write to the same session.
 
 ## Commands
@@ -153,7 +155,7 @@ Close the old Claude Code window first, so two accounts don't write to the same 
 | `cct list` | Show accounts, their folders, and whether all shared items are linked. |
 | `cct link NAME` | Create missing links again for one account. |
 | `cct start [NAME] [--no-ask] [-- ARGS]` | Start Claude Code as an account. Anything after `--` goes to `claude`. When Claude Code exits, cct offers to move the session (only in an interactive terminal). |
-| `cct resume [NAME]` | Resume this folder's last session on the next account, or on `NAME`. |
+| `cct resume [NAME] [--session ID]` | Resume this folder's last session, or the session `ID`, on the next account or on `NAME`. If cct hasn't seen that session, name the account. |
 | `cct status` | Usage table: 5-hour and weekly windows, reset times, when each account was last seen. |
 | `cct web [--port 8765] [--no-open]` | The same data as a web page on `http://127.0.0.1:8765`, for this computer only. |
 | `cct install-statusline` | Make cct the statusline in every account's `settings.json`. |

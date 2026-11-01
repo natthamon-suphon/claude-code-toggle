@@ -2,7 +2,7 @@ import os
 import re
 
 from cct import paths
-from cct.services.sessions import last_session, project_key, recent_sessions, save_session
+from cct.services.sessions import find_session, last_session, project_key, recent_sessions, save_session
 from cct.utils.fs import write_json
 from helpers import needs_symlinks
 
@@ -77,3 +77,36 @@ def test_recent_sessions_skips_broken_and_empty_entries(tmp_path):
     write_json(paths.session_dir() / "nosession.json", {"folder": "x", "updated_at": 9.0})
     (paths.session_dir() / "broken.json").write_text("{", encoding="utf-8")
     assert [r["session"] for r in recent_sessions()] == ["good-id"]
+
+
+# ------------------------------------------------------------------ find_session
+
+
+def test_find_session_none_when_not_seen(tmp_path):
+    assert find_session("never-seen") is None
+    save_session(str(tmp_path / "a"), "other-id", "main", 5.0)
+    assert find_session("never-seen") is None
+
+
+def test_find_session_in_any_folder(tmp_path):
+    save_session(str(tmp_path / "a"), "id-a", "main", 5.0)
+    save_session(str(tmp_path / "b"), "id-b", "acc2", 6.0)
+    assert find_session("id-b") == {
+        "folder": str(tmp_path / "b"),
+        "session_id": "id-b",
+        "account": "acc2",
+        "updated_at": 6.0,
+    }
+
+
+def test_find_session_newest_record_wins(tmp_path):
+    save_session(str(tmp_path / "a"), "same-id", "main", 5.0)
+    save_session(str(tmp_path / "b"), "same-id", "acc2", 9.0)
+    assert find_session("same-id")["account"] == "acc2"
+
+
+def test_find_session_skips_damaged_files(tmp_path):
+    (paths.session_dir()).mkdir(parents=True)
+    (paths.session_dir() / "broken.json").write_text("{", encoding="utf-8")
+    save_session(str(tmp_path / "a"), "id-a", "main", 5.0)
+    assert find_session("id-a")["folder"] == str(tmp_path / "a")
