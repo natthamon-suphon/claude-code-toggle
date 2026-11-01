@@ -57,7 +57,7 @@ def test_save_then_load_round_trip(three_accounts):
         ('{"accounts": [{"name": "acc\\n"}]}', "Bad account entry"),
         ('{"accounts": [{"name": "acc2", "dir": 5}]}', "Bad account entry"),
         ('{"accounts": [{"name": "main"}], "prev_statusline": 5}', "Bad prev_statusline"),
-        ("[" * 100_000, "is not valid JSON"),  # nested too deeply for Python's JSON reader
+        pytest.param("[" * 100_000, "is not valid JSON", id="nested-too-deeply"),
         ('{"accounts": [{"name": "work"}, {"name": "work"}]}', "Two accounts .* are named 'work'"),
         ('{"accounts": [{"name": "work"}, {"name": "Work"}]}', "Two accounts .* are named 'Work'"),
     ],

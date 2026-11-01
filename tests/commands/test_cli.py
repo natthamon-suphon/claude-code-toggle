@@ -132,7 +132,7 @@ def test_file_problems_exit_1_without_a_traceback(capsys, monkeypatch):
     monkeypatch.setattr(paths, "cct_home", lambda: paths.Path(__file__))  # a file, not a folder
     assert cli.main(["list"]) == 1
     err = capsys.readouterr().err
-    assert err.startswith("cct: [Errno")
+    assert err.startswith("cct: [")  # "[Errno 20] ..." or, on Windows, "[WinError 183] ..."
     assert "Traceback" not in err
 
 

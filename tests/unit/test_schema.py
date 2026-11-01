@@ -175,7 +175,9 @@ def test_parse_input_object():
     assert parse_input('{"session_id": "s"}') == {"session_id": "s"}
 
 
-@pytest.mark.parametrize("raw", ["{broken", "[1, 2]", '"text"', "42", "null", "[" * 100_000])
+@pytest.mark.parametrize(
+    "raw", ["{broken", "[1, 2]", '"text"', "42", "null", pytest.param("[" * 100_000, id="nested-too-deeply")]
+)
 def test_parse_input_rejects_non_objects(raw):
     with pytest.raises(ValueError):
         parse_input(raw)

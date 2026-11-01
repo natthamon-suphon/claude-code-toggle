@@ -84,7 +84,7 @@ def test_missing_rate_limits_keeps_old_numbers(work, cfg, monkeypatch, capsys):
         json.dumps({"rate_limits": {"five_hour": {"used_percentage": "lots"}}}),
         json.dumps({"rate_limits": {"five_hour": {"used_percentage": [1]}}}),
         json.dumps({"session_id": "s", "cwd": 5}),
-        "[" * 100_000,  # nested too deeply for Python's JSON reader
+        pytest.param("[" * 100_000, id="nested-too-deeply"),
     ],
 )
 def test_bad_input_logs_and_prints_short_error(cfg, monkeypatch, capsys, stdin):
@@ -182,7 +182,7 @@ def test_broken_config_prints_error_line(monkeypatch, capsys):
         '{"five_hour": "x", "seven_day": {"pct": "10"}}',
         '{"five_hour": {"pct": NaN}, "seven_day": {"pct": Infinity}}',
         '{"five_hour": {"pct": 1e999}, "seven_day": {"pct": 1' + "0" * 400 + "}}",
-        '{"five_hour": ' + "[" * 100_000,
+        pytest.param('{"five_hour": ' + "[" * 100_000, id="nested-too-deeply"),
     ],
 )
 def test_damaged_usage_file_does_not_crash(cfg, monkeypatch, capsys, damage):
